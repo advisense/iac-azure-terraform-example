@@ -22,19 +22,20 @@ Check that you have the latest versions before you continue.
 
 # USAGE
 
+1. Authenticate towards Azure (if you haven't already done this)
+    * `az login`
 1. Fork and download the repo
 1. Create the file terraform.tfvars
     * set the variable app_name
     * `app_name = "<INSERT_HERE>"`
+    * `linux_admin_password = <INSERT_YOUR_PWD_HERE>`
+1. set env variables for your azure env
+    * `export ARM_TENANT_ID=<YOUR_AZURE_TENANT_ID>`
+    * `export ARM_SUBSCRIPTION_ID=<YOUR_AZURE_SUBSCRIPTION_ID>`
 1. Initialize Terraform
     * `terraform init`
 1. Terraform plan
     * `terraform plan`
-
-If everything now works, it's time to create your resources in Azure.
-
-1. Authenticate towards Azure (if you haven't already done this)
-    * `az login`
 1. Create all the resources
     * `terraform apply`
 

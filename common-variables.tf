@@ -1,18 +1,18 @@
 #Define application name
 variable "app_name" {
-  type = string
+  type        = string
   description = "Your unique application name, set this value in you local terraform.tfvars  - it is used as a prefix for all resources"
 }
 #Define application environment
 variable "app_environment" {
-  type = string
+  type        = string
   description = "Application environment"
-  default = "test"
+  default     = "test"
 }
 
 #Define the internal department responsible for the application
 variable "department_id" {
-  type = string
+  type        = string
   description = "Application environment"
-  default = "50001"
+  default     = "50001"
 }

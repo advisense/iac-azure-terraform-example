@@ -6,12 +6,19 @@ terraform {
       version = "~>4.4.0"
     }
   }
+
+  backend "azurerm" {
+    resource_group_name  = "StorageAccount-TerraformExample-State" # Can be passed via `-backend-config=`"resource_group_name=<resource group name>"` in the `init` command.
+    storage_account_name = "iactfexampleacc"                       # Can be passed via `-backend-config=`"storage_account_name=<storage account name>"` in the `init` command.
+    container_name       = "tfstate"                               # Can be passed via `-backend-config=`"container_name=<container name>"` in the `init` command.
+    key                  = "terraform.tfstate"                     # Can be passed via `-backend-config=`"key=<blob key name>"` in the `init` command.
+  }
 }
 
 # 2. Configure the AzureRM Provider
 provider "azurerm" {
-  # set tenant_id as a env through the env ARM_TENANT_ID= "ad561f35-fbb6-40bb-afca-730666fc3655"
-  # set subscription_id through the env ARM_SUBSCRIPTION_ID = "4107b855-2d18-4b79-89f5-35b310389f8b"
+  # set tenant_id as a env through the env ARM_TENANT_ID= 
+  # set subscription_id through the env ARM_SUBSCRIPTION_ID = 
   # The AzureRM Provider supports authenticating using via the Azure CLI, a Managed Identity
   # and a Service Principal. More information on the authentication methods supported by
   # the AzureRM Provider can be found here:

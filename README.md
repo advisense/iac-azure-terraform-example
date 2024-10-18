@@ -24,7 +24,7 @@ Check that you have the latest versions before you continue.
 
 1. Authenticate towards Azure (if you haven't already done this)
     * `az login`
-1. Fork and download the repo
+1. Clone the repo
 1. Create the file terraform.tfvars
     * set the variable app_name
     * `app_name = "<INSERT_HERE>"`

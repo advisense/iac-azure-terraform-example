@@ -38,4 +38,4 @@ terraform.rc
 .terraform.lock.hcl
 
 #kristians ting
-setenv.sh
+envvar.sh

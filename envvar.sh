@@ -1,0 +1,3 @@
+#!/bin/bash
+export ARM_TENANT_ID=ad561f35-fbb6-40bb-afca-730666fc3655
+export ARM_SUBSCRIPTION_ID=4107b855-2d18-4b79-89f5-35b310389f8b

@@ -20,6 +20,7 @@ env:
 jobs:
   terraform-plan:
     name: 'Azure CLI login'
+    runs-on: ubuntu-latest
     uses: azure/login
     with:
       client-id: ${{ secrets.AZURE_CLIENT_ID }}

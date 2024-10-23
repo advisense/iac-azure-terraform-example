@@ -30,8 +30,7 @@ jobs:
     steps:
     # Log in to azure CLI 
     - name: 'Azure CLI login'
-      runs-on: ubuntu-latest
-      uses: azure/login
+      uses: azure/login@v1
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}

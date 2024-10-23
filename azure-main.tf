@@ -27,6 +27,7 @@ provider "azurerm" {
   # The features block allows changing the behaviour of the Azure Provider, more
   # information can be found here:
   # https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
+  use_oidc = true
   features {}
 }
 

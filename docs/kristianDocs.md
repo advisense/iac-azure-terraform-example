@@ -4,6 +4,7 @@ az ad app create --display-name "kristianGithubActionsContributor"
 #### create a service principle for your application, and assign desired roles to it
 az ad sp create --id <APPLICATION_ID>
 az role assignment create --assignee "<APPLICATION_ID>" --role "Contributor" --scope "/subscriptions/$ARM_SUBSCRIPTION_ID"
+az role assignment create --assignee <APPLICATION_ID>  --role "Reader and Data Access" --scope "/subscriptions/$ARM_SUBSCRIPTION_ID"
 
 #### create federated credentials to allow github to use the service principal
 issuer: https://token.actions.githubusercontent.com

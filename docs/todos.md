@@ -1,6 +1,7 @@
 # TODOS
 
-1. Remove FMT check from pipeline
+1. create correct routing between spoke 2 (internal terminals) and spoke 1 (internal app)
+2. Remove FMT check from pipeline
 1. Document the hub and spoke
    - A drawing
    - A case description on the fake company

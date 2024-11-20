@@ -26,9 +26,8 @@ Check that you have the latest versions before you continue.
     * `az login`
 1. Clone the repo
 1. Create the file terraform.tfvars
-    * set the variable app_name
-    * `app_name = "<INSERT_HERE>"`
-    * `linux_admin_password = <INSERT_YOUR_PWD_HERE>`
+    * `unique_prefix = "<INSERT_HERE>"`
+    * `admin_password = <INSERT_YOUR_PWD_HERE>`
 1. set env variables for your azure env
     * `export ARM_TENANT_ID=<YOUR_AZURE_TENANT_ID>`
     * `export ARM_SUBSCRIPTION_ID=<YOUR_AZURE_SUBSCRIPTION_ID>`

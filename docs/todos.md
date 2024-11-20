@@ -9,3 +9,5 @@
 1. create a separate project for the app code
 1. establish a pipeline for building and packing the app code
 1. create a separate project for the app deploy
+1. document the pipeline setup
+   - where is the terraform.tfvars built and why?

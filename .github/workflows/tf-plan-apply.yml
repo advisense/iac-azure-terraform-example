@@ -61,8 +61,8 @@ jobs:
     #Create tfvars file
     - name: Create terraform.tfvars
       run: | 
-        echo "app_name=\"gitAct\"" > terraform.tfvars
-        echo "linux_admin_password=\"Cisco123!\"" >> terraform.tfvars
+        echo "unique_prefix=\"bob\"" > terraform.tfvars
+        echo "admin_password=\"Cisco123!\"" >> terraform.tfvars
 
     # Generates an execution plan for Terraform
     # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.

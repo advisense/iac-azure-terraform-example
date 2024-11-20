@@ -59,17 +59,6 @@ module "public_ip_01" {
   sku                 = "Standard"
 }
 
-# publicip Module is used to create Public IP Address
-module "public_ip_02" {
-  source = "./modules/publicip"
-
-  # Used for Application Gateway
-  public_ip_name      = "az-conn-prod-noeast-agw-pip02"
-  resource_group_name = module.hub-resourcegroup.rg_name
-  location            = module.hub-resourcegroup.rg_location
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
 
 # publicip Module is used to create Public IP Address
 module "public_ip_03" {

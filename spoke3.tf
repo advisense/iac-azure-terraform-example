@@ -22,7 +22,7 @@ module "spoke3-vnet" {
 resource "azurerm_service_plan" "app-service-plan" {
   name                = "${var.company_name}-prod-app-service-plan"
   location            = module.spoke3-resourcegroup.rg_location
-  resource_group_name = module.spoke2-resourcegroup.rg_name
+  resource_group_name = module.spoke3-resourcegroup.rg_name
   os_type             = "Linux"
   sku_name            = "B1"
   tags = {
@@ -34,15 +34,13 @@ resource "azurerm_service_plan" "app-service-plan" {
 resource "azurerm_linux_web_app" "app-service" {
   name                = "${var.company_name}-prod-app-service"
   location            = module.spoke3-resourcegroup.rg_location
-  resource_group_name = module.spoke2-resourcegroup.rg_name
+  resource_group_name = module.spoke3-resourcegroup.rg_name
   service_plan_id     = azurerm_service_plan.app-service-plan.id
   site_config {
     application_stack {
       docker_image_name = "bkimminich/juice-shop:latest"
     }
   }
-
-
   tags = {
     environment = "Prod"
   }

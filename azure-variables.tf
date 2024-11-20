@@ -1,4 +1,20 @@
-# azure-variables.tf | Variables for the Azure module
+
+# Linux VM Admin Password
+variable "admin_password" {
+  type        = string
+  description = "Admin Password"
+}
+
+variable "unique_prefix" {
+  type        = string
+  description = "Your unique application name, set this value in you local terraform.tfvars  - it is used as a prefix for all resources"
+}
+
+variable "company_name" {
+  type        = string
+  description = "my fake company name, all lowercase"
+  default     = "aquirksense"
+}
 
 # Location Resource Group
 variable "rg_location" {
@@ -7,39 +23,6 @@ variable "rg_location" {
   default     = "Norway East"
 }
 
-# Vnet CIDR
-variable "azure_vnet_cidr" {
-  type        = string
-  description = "Vnet CIDR"
-  default     = "10.2.0.0/16"
-}
-
-# Subnet CIDR
-variable "azure_subnet_cidr" {
-  type        = string
-  description = "Subnet CIDR"
-  default     = "10.2.1.0/24"
-}
-
-# Linux VM Admin User
-variable "linux_admin_user" {
-  type        = string
-  description = "Linux VM Admin User"
-  default     = "tfadmin"
-}
-
-# Linux VM Admin Password
-variable "linux_admin_password" {
-  type        = string
-  description = "Linux VM Admin Password"
-}
-
-# Linux VM Hostname
-variable "linux_vm_hostname" {
-  type        = string
-  description = "Linux VM Hostname"
-  default     = "azwebserver1"
-}
 
 # Ubuntu Linux Publisher used to build VMs
 variable "ubuntu-linux-publisher" {

@@ -20,5 +20,5 @@ output "vnet_address_space" {
 
 output "vnet_subnet_id" {
   description = "The location of the newly created vNet"
-  value       = values(azurerm_subnet.subnet)[*].id    
-  }
+  value       = values(azurerm_subnet.subnet)[*].id
+}

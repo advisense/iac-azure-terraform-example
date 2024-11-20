@@ -16,7 +16,7 @@ resource "azurerm_virtual_machine" "vm" {
   location              = var.location
   resource_group_name   = var.resource_group_name
   network_interface_ids = [azurerm_network_interface.nic.id]
-  vm_size               = var.vm_size 
+  vm_size               = var.vm_size
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
   delete_os_disk_on_termination = var.delete_os_disk_on_termination
@@ -26,7 +26,7 @@ resource "azurerm_virtual_machine" "vm" {
 
   storage_image_reference {
     publisher = var.publisher
-    offer     = var.offer  
+    offer     = var.offer
     sku       = var.sku
     version   = var.storage_version
   }
@@ -37,11 +37,11 @@ resource "azurerm_virtual_machine" "vm" {
     managed_disk_type = var.managed_disk_type
   }
   os_profile {
-    computer_name  =  var.virtual_machine_name
-    admin_username =  var.admin_username
-    admin_password =  var.admin_password
+    computer_name  = var.virtual_machine_name
+    admin_username = var.admin_username
+    admin_password = var.admin_password
   }
   os_profile_windows_config {
-  provision_vm_agent = var.provision_vm_agent
-}
+    provision_vm_agent = var.provision_vm_agent
+  }
 }

@@ -15,22 +15,22 @@ resource "azurerm_linux_virtual_machine" "linux-vm" {
   location                        = var.location
   resource_group_name             = var.resource_group_name
   network_interface_ids           = [azurerm_network_interface.nic.id]
-  size                            = var.vm_size 
+  size                            = var.vm_size
   admin_username                  = var.admin_username
   admin_password                  = var.admin_password
   disable_password_authentication = var.disable_password_authentication
 
   source_image_reference {
-  publisher = var.publisher
-  offer     = var.offer  
-  sku       = var.sku
-  version   = var.storage_version
+    publisher = var.publisher
+    offer     = var.offer
+    sku       = var.sku
+    version   = var.storage_version
   }
 
   os_disk {
-  name                 = var.os_disk_name
-  caching              = var.caching
-  storage_account_type = var.managed_disk_type
-  disk_size_gb         = var.disk_size_gb 
+    name                 = var.os_disk_name
+    caching              = var.caching
+    storage_account_type = var.managed_disk_type
+    disk_size_gb         = var.disk_size_gb
   }
 }

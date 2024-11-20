@@ -11,7 +11,7 @@ variable "resource_group_name" {
 }
 
 variable "sku_name" {
- type = string
+  type = string
 }
 
 variable "sku_tier" {
@@ -107,7 +107,7 @@ variable "dnat_rule_coll_action" {
 }
 variable "dnat_rules" {
   description = "List of DNAT rules"
-  default = []
+  default     = []
 }
 
 /**

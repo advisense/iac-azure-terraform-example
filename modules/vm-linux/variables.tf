@@ -11,7 +11,7 @@ variable "resource_group_name" {
 }
 
 variable "ipconfig_name" {
- type = string
+  type = string
 }
 
 variable "subnet_id" {

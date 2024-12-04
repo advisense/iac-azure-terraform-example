@@ -2,7 +2,7 @@
 module "spoke2-vnet" {
   source = "./modules/vnet"
 
-  virtual_network_name          = "${var.company_name}-prod-noeast-vnet"
+  virtual_network_name          = "${var.company_name}-prod-noeast-vnet-spoke2"
   resource_group_name           = module.spoke2-resourcegroup.rg_name
   location                      = module.spoke2-resourcegroup.rg_location
   virtual_network_address_space = ["10.52.0.0/16"]
@@ -47,7 +47,7 @@ module "desktop-windows-01" {
   admin_password = var.admin_password
 
   provision_vm_agent = true
-  depends_on         = [module.spoke1-vnet]
+  depends_on         = [module.spoke2-vnet]
 }
 
 
@@ -82,5 +82,5 @@ module "desktop-windows-02" {
   admin_password = var.admin_password
 
   provision_vm_agent = true
-  depends_on         = [module.spoke1-vnet]
+  depends_on         = [module.spoke2-vnet]
 }

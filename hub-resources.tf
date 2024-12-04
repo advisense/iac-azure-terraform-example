@@ -145,32 +145,46 @@ module "azure_firewall_01" {
   network_rule_coll_action_02   = "Allow"
   network_rules_02 = [
     {
-      name                  = "Allowed_Network_rule_1"
-      source_addresses      = ["10.1.0.0/16"]
-      destination_addresses = ["172.21.1.10", "8.10.4.4"]
-      destination_ports     = [11]
-      protocols             = ["TCP"]
+      name                  = "Spoke1toSpoke2"
+      source_addresses      = ["10.51.0.0/16"]
+      destination_addresses = ["10.52.0.0/16"]
+      destination_ports     = ["*"]
+      protocols             = ["Any"]
     },
     {
-      name                  = "Allowed_Network_rule_2"
-      source_addresses      = ["10.1.0.0/16"]
-      destination_addresses = ["172.21.1.10", "8.10.4.4"]
-      destination_ports     = [21]
-      protocols             = ["TCP"]
+      name                  = "Spoke2toSpoke1"
+      source_addresses      = ["10.52.0.0/16"]
+      destination_addresses = ["10.51.0.0/16"]
+      destination_ports     = ["*"]
+      protocols             = ["Any"]
     },
     {
-      name                  = "Allowed_Network_rule_3"
-      source_addresses      = ["10.1.0.0/16"]
-      destination_addresses = ["172.21.1.10", "8.10.4.4"]
-      destination_ports     = [11]
-      protocols             = ["TCP"]
+      name                  = "Spoke1toSpoke3"
+      source_addresses      = ["10.51.0.0/16"]
+      destination_addresses = ["10.53.0.0/16"]
+      destination_ports     = ["*"]
+      protocols             = ["Any"]
     },
     {
-      name                  = "Allowed_Network_rule_4"
-      source_addresses      = ["10.1.0.0/16"]
-      destination_addresses = ["172.21.1.10", "8.10.4.4"]
-      destination_ports     = [21]
-      protocols             = ["TCP"]
+      name                  = "Spoke2toSpoke3"
+      source_addresses      = ["10.52.0.0/16"]
+      destination_addresses = ["10.53.0.0/16"]
+      destination_ports     = ["*"]
+      protocols             = ["Any"]
+    },
+    {
+      name                  = "Spoke3toSpoke1"
+      source_addresses      = ["10.53.0.0/16"]
+      destination_addresses = ["10.51.0.0/16"]
+      destination_ports     = ["*"]
+      protocols             = ["Any"]
+    },
+    {
+      name                  = "Spoke3toSpoke2"
+      source_addresses      = ["10.53.0.0/16"]
+      destination_addresses = ["10.52.0.0/16"]
+      destination_ports     = ["*"]
+      protocols             = ["Any"]
     }
   ]
 
@@ -214,9 +228,9 @@ module "azure_firewall_01" {
       protocols           = ["TCP"]
       source_addresses    = ["*"]
       destination_address = module.public_ip_03.public_ip_address
-      destination_ports   = ["10"] #3389 if you need RDP
-      translated_address  = "10.51.4.4"
-      translated_port     = "10" #3389 if you need RDP
+      destination_ports   = ["3389"] #3389 if you need RDP
+      translated_address  = "10.51.1.4"
+      translated_port     = "3389" #3389 if you need RDP
 
       # name                = "nat_rule_collection1_rule1"
       # protocols           = ["TCP", "UDP"]
@@ -226,7 +240,7 @@ module "azure_firewall_01" {
       # translated_address  = "192.168.0.1"
       # translated_port     = "8080"
 
-    },
+    }
     # Add more DNAT rules as needed
   ]
 }

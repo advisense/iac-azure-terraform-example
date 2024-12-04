@@ -40,5 +40,5 @@ module "vm-jumpbox-01" {
   admin_password = var.admin_password
 
   provision_vm_agent = true
-  depends_on         = [module.spoke1-vnet]
+  depends_on         = [module.hub-vnet]
 }

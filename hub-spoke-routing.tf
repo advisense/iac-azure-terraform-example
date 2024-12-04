@@ -5,7 +5,7 @@ module "hub-to-spoke1" {
   depends_on = [module.hub-vnet, module.spoke1-vnet, module.azure_firewall_01]
   #depends_on = [module.hub-vnet , module.spoke1-vnet , module.application_gateway, module.vpn_gateway , module.azure_firewall_01]
 
-  virtual_network_peering_name = "az-conn-prod-noeast-vnet-to-az-${var.company_name}-prod-noeast-vnet"
+  virtual_network_peering_name = "az-conn-prod-noeast-vnet-to-az-${var.company_name}-spoke1-vnet"
   resource_group_name          = module.hub-resourcegroup.rg_name
   virtual_network_name         = module.hub-vnet.vnet_name
   remote_virtual_network_id    = module.spoke1-vnet.vnet_id
@@ -112,7 +112,7 @@ module "spoke3-to-hub" {
 # routetables Module is used to create route tables and associate them with Subnets created by Virtual Networks
 module "route_tables" {
   source     = "./modules/routetables"
-  depends_on = [module.hub-vnet, module.spoke1-vnet]
+  depends_on = [module.hub-vnet, module.spoke1-vnet, module.spoke2-vnet, module.spoke3-vnet]
 
   route_table_name              = "az-${var.company_name}-prod-noeast-route"
   location                      = module.hub-resourcegroup.rg_location
@@ -126,7 +126,9 @@ module "route_tables" {
 
   subnet_ids = [
     module.spoke1-vnet.vnet_subnet_id[0],
-    module.spoke1-vnet.vnet_subnet_id[1]
+    module.spoke1-vnet.vnet_subnet_id[1],
+    module.spoke2-vnet.vnet_subnet_id[0],
+    module.spoke3-vnet.vnet_subnet_id[0]
   ]
 
 }

@@ -3,7 +3,7 @@
 module "spoke3-vnet" {
   source = "./modules/vnet"
 
-  virtual_network_name          = "${var.company_name}-prod-noeast-vnet"
+  virtual_network_name          = "${var.company_name}-prod-noeast-vnet-spoke3"
   resource_group_name           = module.spoke3-resourcegroup.rg_name
   location                      = module.spoke3-resourcegroup.rg_location
   virtual_network_address_space = ["10.53.0.0/16"]

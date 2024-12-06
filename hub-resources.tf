@@ -52,32 +52,32 @@ module "public_ip_01" {
   source = "./modules/publicip"
 
   # Used for VPN Gateway 
-  public_ip_name      = "az-conn-prod-noeast-vgw-pip01-win-app01"
+  public_ip_name      = "az-conn-prod-noeast-vgw-pip01"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
-
-# publicip Module is used to create Public IP Address
-module "public_ip_02" {
-  source = "./modules/publicip"
-
-  # Used for Azure Firewall 
-  public_ip_name      = "az-conn-prod-noeast-afw-pip02-aquirksensevm01"
-  resource_group_name = module.hub-resourcegroup.rg_name
-  location            = module.hub-resourcegroup.rg_location
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
 
 # publicip Module is used to create Public IP Address
 module "public_ip_03" {
   source = "./modules/publicip"
 
+  # Used for Azure Firewall 
+  public_ip_name      = "az-conn-prod-noeast-afw-pip03"
+  resource_group_name = module.hub-resourcegroup.rg_name
+  location            = module.hub-resourcegroup.rg_location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+# publicip Module is used to create Public IP Address
+module "public_ip_04" {
+  source = "./modules/publicip"
+
   # Used for Azure Bastion
-  public_ip_name      = "az-conn-prod-noeast-afw-pip03-aquirksensevm03"
+  public_ip_name      = "az-conn-prod-noeast-afw-pip04"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"

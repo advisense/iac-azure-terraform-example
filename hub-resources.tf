@@ -103,13 +103,13 @@ module "public_ip_04" {
 
 
 module "azure_firewall_policy_01" {
-  source = "./modules/azurefirewallpolicy"
+  source     = "./modules/azurefirewallpolicy"
   depends_on = [module.hub-vnet]
 
   azure_firewall_policy_name = "az-conn-prod-noeast-afw-pol01"
-  location = module.hub-resourcegroup.rg_location
-  resource_group_name = module.hub-resourcegroup.rg_name
-  sku = "Basic"
+  location                   = module.hub-resourcegroup.rg_location
+  resource_group_name        = module.hub-resourcegroup.rg_name
+  sku                        = "Basic"
 }
 # azurefirewall Module is used to create Azure Firewall 
 # Firewall Policy
@@ -124,7 +124,7 @@ module "azure_firewall_01" {
   resource_group_name = module.hub-resourcegroup.rg_name
   sku_name            = "AZFW_VNet"
   sku_tier            = "Basic"
-  firewall_policy_id = module.azure_firewall_policy_01.id
+  firewall_policy_id  = module.azure_firewall_policy_01.id
 
   ipconfig_name        = "configuration"
   subnet_id            = module.hub-vnet.vnet_subnet_id[3]
@@ -139,18 +139,18 @@ module "azure_firewall_01" {
 
 
 module "azure_firewall_rule_coll_group" {
-  source = "./modules/azurefirewallrulecolgrp"
+  source     = "./modules/azurefirewallrulecolgrp"
   depends_on = [module.hub-vnet, module.azure_firewall_policy_01]
 
   azure_firewall_policy_coll_group_name = "az-conn-prod-noeast-afw-coll-pol01"
-  firewall_policy_id = module.azure_firewall_policy_01.id
-  priority = 150
+  firewall_policy_id                    = module.azure_firewall_policy_01.id
+  priority                              = 150
 
   network_rule_coll_name_01     = "Blocked_Network_Rules"
   network_rule_coll_priority_01 = "2000"
   network_rule_coll_action_01   = "Deny"
   network_rules_01 = [
-   
+
   ]
 
   network_rule_coll_name_02     = "Allowed_Network_Rules"

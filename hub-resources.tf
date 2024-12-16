@@ -9,9 +9,10 @@ module "hub-vnet" {
   # Subnets are used in Index for other modules to refer
   # module.hub-vnet.vnet_subnet_id[0] = ApplicationGatewaySubnet   - Alphabetical Order
   # module.hub-vnet.vnet_subnet_id[1] = AzureBastionSubnet         - Alphabetical Order
-  # module.hub-vnet.vnet_subnet_id[2] = AzureFirewallSubnet        - Alphabetical Order
-  # module.hub-vnet.vnet_subnet_id[3] = GatewaySubnet              - Alphabetical Order
-  # module.hub-vnet.vnet_subnet_id[4] = JumpboxSubnet              - Alphabetical Order
+  # module.hub-vnet.vnet_subnet_id[2] = AzureFirewallManagementSubnet        - Alphabetical Order
+  # module.hub-vnet.vnet_subnet_id[3] = AzureFirewallSubnet        - Alphabetical Order
+  # module.hub-vnet.vnet_subnet_id[4] = GatewaySubnet              - Alphabetical Order
+  # module.hub-vnet.vnet_subnet_id[5] = JumpboxSubnet              - Alphabetical Order
 
   subnet_names = {
     "GatewaySubnet" = {
@@ -26,18 +27,24 @@ module "hub-vnet" {
       route_table_name = ""
       snet_delegation  = ""
     },
+    "AzureFirewallManagementSubnet" = {
+      subnet_name      = "AzureFirewallManagementSubnet"
+      address_prefixes = ["10.50.6.0/24"]
+      route_table_name = ""
+      snet_delegation  = ""
+    },
     "ApplicationGatewaySubnet" = {
       subnet_name      = "ApplicationGatewaySubnet"
       address_prefixes = ["10.50.3.0/24"]
       route_table_name = ""
       snet_delegation  = ""
-    }
+    },
     "AzureBastionSubnet" = {
       subnet_name      = "AzureBastionSubnet"
       address_prefixes = ["10.50.4.0/24"]
       route_table_name = ""
       snet_delegation  = ""
-    }
+    },
     "JumpboxSubnet" = {
       subnet_name      = "JumpboxSubnet"
       address_prefixes = ["10.50.5.0/24"]
@@ -61,11 +68,11 @@ module "public_ip_01" {
 
 
 # publicip Module is used to create Public IP Address
-module "public_ip_03" {
+module "public_ip_02" {
   source = "./modules/publicip"
 
   # Used for Azure Firewall 
-  public_ip_name      = "az-conn-prod-noeast-afw-pip03"
+  public_ip_name      = "az-conn-prod-noeast-afw-pip02"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
@@ -73,71 +80,77 @@ module "public_ip_03" {
 }
 
 # publicip Module is used to create Public IP Address
+module "public_ip_03" {
+  source = "./modules/publicip"
+
+  # Used for Azure Bastion
+  public_ip_name      = "az-conn-prod-noeast-bastion-pip03"
+  resource_group_name = module.hub-resourcegroup.rg_name
+  location            = module.hub-resourcegroup.rg_location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
 module "public_ip_04" {
   source = "./modules/publicip"
 
   # Used for Azure Bastion
-  public_ip_name      = "az-conn-prod-noeast-afw-pip04"
+  public_ip_name      = "az-conn-prod-noeast-afwmgmt-pip04"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
+
+module "azure_firewall_policy_01" {
+  source = "./modules/azurefirewallpolicy"
+  depends_on = [module.hub-vnet]
+
+  azure_firewall_policy_name = "az-conn-prod-noeast-afw-pol01"
+  location = module.hub-resourcegroup.rg_location
+  resource_group_name = module.hub-resourcegroup.rg_name
+  sku = "Basic"
+}
 # azurefirewall Module is used to create Azure Firewall 
 # Firewall Policy
 # Associate Firewall Policy with Azure Firewall
 # Network and Application Firewall Rules 
 module "azure_firewall_01" {
   source     = "./modules/azurefirewall"
-  depends_on = [module.hub-vnet]
+  depends_on = [module.hub-vnet, module.azure_firewall_policy_01, module.azure_firewall_rule_coll_group]
 
   azure_firewall_name = "az-conn-prod-noeast-afw"
   location            = module.hub-resourcegroup.rg_location
   resource_group_name = module.hub-resourcegroup.rg_name
   sku_name            = "AZFW_VNet"
-  sku_tier            = "Standard"
+  sku_tier            = "Basic"
+  firewall_policy_id = module.azure_firewall_policy_01.id
 
   ipconfig_name        = "configuration"
-  subnet_id            = module.hub-vnet.vnet_subnet_id[2]
-  public_ip_address_id = module.public_ip_03.public_ip_address_id
+  subnet_id            = module.hub-vnet.vnet_subnet_id[3]
+  public_ip_address_id = module.public_ip_02.public_ip_address_id
+
+  ipconfig_name_mgmt        = "management"
+  subnet_id_mgmt            = module.hub-vnet.vnet_subnet_id[2]
+  public_ip_address_id_mgmt = module.public_ip_04.public_ip_address_id
+}
+
+
+
+
+module "azure_firewall_rule_coll_group" {
+  source = "./modules/azurefirewallrulecolgrp"
+  depends_on = [module.hub-vnet, module.azure_firewall_policy_01]
 
   azure_firewall_policy_coll_group_name = "az-conn-prod-noeast-afw-coll-pol01"
-  azure_firewall_policy_name            = "az-conn-prod-noeast-afw-pol01"
-  priority                              = 100
+  firewall_policy_id = module.azure_firewall_policy_01.id
+  priority = 150
 
   network_rule_coll_name_01     = "Blocked_Network_Rules"
   network_rule_coll_priority_01 = "2000"
   network_rule_coll_action_01   = "Deny"
   network_rules_01 = [
-    {
-      name                  = "Blocked_rule_1"
-      source_addresses      = ["10.1.0.0/16"]
-      destination_addresses = ["10.8.8.8", "8.10.4.4"]
-      destination_ports     = [11]
-      protocols             = ["TCP"]
-    },
-    {
-      name                  = "Blocked_rule_2"
-      source_addresses      = ["10.1.0.0/16"]
-      destination_addresses = ["10.8.8.8", "8.10.4.4"]
-      destination_ports     = [21]
-      protocols             = ["TCP"]
-    },
-    {
-      name                  = "Blocked_rule_3"
-      source_addresses      = ["10.1.0.0/16"]
-      destination_addresses = ["10.8.8.8", "8.10.4.4"]
-      destination_ports     = [11]
-      protocols             = ["TCP"]
-    },
-    {
-      name                  = "Blocked_rule_4"
-      source_addresses      = ["10.1.0.0/16"]
-      destination_addresses = ["10.8.8.8", "8.10.4.4"]
-      destination_ports     = [21]
-      protocols             = ["TCP"]
-    }
+   
   ]
 
   network_rule_coll_name_02     = "Allowed_Network_Rules"
@@ -227,22 +240,14 @@ module "azure_firewall_01" {
       name                = "DNATRuleRDP"
       protocols           = ["TCP"]
       source_addresses    = ["*"]
-      destination_address = module.public_ip_03.public_ip_address
+      destination_address = module.public_ip_02.public_ip_address
       destination_ports   = ["3389"] #3389 if you need RDP
       translated_address  = "10.51.1.4"
       translated_port     = "3389" #3389 if you need RDP
 
-      # name                = "nat_rule_collection1_rule1"
-      # protocols           = ["TCP", "UDP"]
-      # source_addresses    = ["10.0.0.1", "10.0.0.2"]
-      # destination_address = "192.168.1.1"
-      # destination_ports   = ["80"]
-      # translated_address  = "192.168.0.1"
-      # translated_port     = "8080"
-
     }
-    # Add more DNAT rules as needed
   ]
+
 }
 
 # bastion Module is used to create Bastion in Hub Virtual Network - To Console into Virtual Machines Securely
@@ -255,7 +260,7 @@ module "vm-bastion" {
 
   ipconfig_name        = "configuration"
   subnet_id            = module.hub-vnet.vnet_subnet_id[1]
-  public_ip_address_id = module.public_ip_04.public_ip_address_id
+  public_ip_address_id = module.public_ip_03.public_ip_address_id
 
   depends_on = [module.hub-vnet, module.azure_firewall_01, module.vm-jumpbox-01]
 }

@@ -17,7 +17,7 @@ module "vm-jumpbox-01" {
   location                      = module.mgmt-resourcegroup_01.rg_location
   resource_group_name           = module.mgmt-resourcegroup_01.rg_name
   ipconfig_name                 = "ipconfig1"
-  subnet_id                     = module.hub-vnet.vnet_subnet_id[4]
+  subnet_id                     = module.hub-vnet.vnet_subnet_id[5]
   private_ip_address_allocation = "Dynamic"
   private_ip_address            = ""
   vm_size                       = "Standard_B2s"

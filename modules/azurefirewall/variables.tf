@@ -18,6 +18,10 @@ variable "sku_tier" {
   description = "The full Azure resource ID of the remote virtual network."
 }
 
+variable "firewall_policy_id" {
+  description = "The full Azure resource ID of the remote virtual network."
+}
+
 variable "ipconfig_name" {
   description = "The full Azure resource ID of the remote virtual network."
 }
@@ -30,6 +34,18 @@ variable "public_ip_address_id" {
   description = "The full Azure resource ID of the remote virtual network."
 }
 
+variable "ipconfig_name_mgmt" {
+  description = "The full Azure resource ID of the remote virtual network."
+}
+
+variable "subnet_id_mgmt" {
+  description = "The full Azure resource ID of the remote virtual network."
+}
+
+variable "public_ip_address_id_mgmt" {
+  description = "The full Azure resource ID of the remote virtual network."
+}
+/*
 variable "azure_firewall_policy_name" {
   description = "The full Azure resource ID of the remote virtual network."
 }

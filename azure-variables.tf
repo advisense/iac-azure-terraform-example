@@ -13,7 +13,7 @@ variable "unique_prefix" {
 variable "company_name" {
   type        = string
   description = "my fake company name, all lowercase"
-  default     = "aquirksense"
+  default     = "microsave"
 }
 
 # Location Resource Group

@@ -42,7 +42,6 @@ resource "azurerm_linux_web_app" "app-service" {
       docker_image_name   = var.container_image
       docker_registry_url = var.container_docker_registry_url
 
-
     }
   }
 
@@ -53,6 +52,6 @@ resource "azurerm_linux_web_app" "app-service" {
 }
 
 # third step: print out the DNS name created
-output "app_service_url" {
+output "app_service_url_prod" {
   value = azurerm_linux_web_app.app-service.default_hostname
 }

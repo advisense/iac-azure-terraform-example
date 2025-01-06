@@ -56,7 +56,34 @@ module "spoke3-resourcegroup" {
   }
 }
 
-# SPOKE 4 is the central management spoke contain a jumpserver
+# SPOKE 4 is the company's SPOKE for Internetfacing applications TEST
+module "spoke4-resourcegroup" {
+  source = "./modules/resourcegroups"
+  # Resource Group Variables
+  az_rg_name     = "${var.unique_prefix}-${var.company_name}-prod-noeast-spoke4-rg"
+  az_rg_location = var.rg_location
+  az_tags = {
+    ApplicationName = "WebApps"
+    Role            = "CustomerApps"
+    Environment     = "Test"
+    CompanyName     = "${var.company_name}"
+  }
+}
+
+# SPOKE 5 is for the Container Registry
+module "containerreg-resourcegroup" {
+  source         = "./modules/resourcegroups"
+  az_rg_name     = "${var.unique_prefix}-${var.company_name}-containerreg-rg"
+  az_rg_location = var.rg_location
+  az_tags = {
+    ApplicationName = "Management"
+    Role            = "ContainerRegistry"
+    Environment     = "Prod"
+    CompanyName     = "${var.company_name}"
+  }
+}
+
+# This spoke is the central management spoke contain a jumpserver
 module "mgmt-resourcegroup" {
   source = "./modules/resourcegroups"
   # Resource Group Variables

@@ -3,7 +3,7 @@
 module "spoke4-vnet" {
   source = "./modules/vnet"
 
-  virtual_network_name          = "${var.company_name}-test-noeast-vnet-spoke3"
+  virtual_network_name          = "${var.company_name}-test-noeast-vnet-spoke4"
   resource_group_name           = module.spoke4-resourcegroup.rg_name
   location                      = module.spoke4-resourcegroup.rg_location
   virtual_network_address_space = ["10.54.0.0/16"]
@@ -53,5 +53,5 @@ resource "azurerm_linux_web_app" "app-service-test" {
 
 # third step: print out the DNS name created
 output "app_service_url_test" {
-  value = azurerm_linux_web_app.app-service.default_hostname
+  value = azurerm_linux_web_app.app-service-test.default_hostname
 }

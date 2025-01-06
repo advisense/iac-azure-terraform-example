@@ -46,14 +46,14 @@ variable "ubuntu-linux-sku" {
 }
 
 variable "container_image" {
-  type    = string
+  type        = string
   description = "the id and tag of the container image to use"
-  default = "aberner/microsave"
+  default     = "aberner/microsave"
 }
 
 variable "container_docker_registry_url" {
-  type    = string
+  type        = string
   description = "the url of the container image to use"
-  default = "https://index.docker.io"
+  default     = "https://index.docker.io"
 }
 

@@ -13,7 +13,7 @@ variable "unique_prefix" {
 variable "company_name" {
   type        = string
   description = "my fake company name, all lowercase"
-  default     = "aquirksense"
+  default     = "microsave"
 }
 
 # Location Resource Group
@@ -43,5 +43,17 @@ variable "ubuntu-linux-sku" {
   type        = string
   description = "Ubuntu Linux Server SKU used to build VMs"
   default     = "22_04-lts"
+}
+
+variable "container_image" {
+  type    = string
+  description = "the id and tag of the container image to use"
+  default = "aberner/microsave"
+}
+
+variable "container_docker_registry_url" {
+  type    = string
+  description = "the url of the container image to use"
+  default = "https://index.docker.io"
 }
 

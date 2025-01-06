@@ -36,14 +36,20 @@ resource "azurerm_linux_web_app" "app-service" {
   location            = module.spoke3-resourcegroup.rg_location
   resource_group_name = module.spoke3-resourcegroup.rg_name
   service_plan_id     = azurerm_service_plan.app-service-plan.id
+  
   site_config {
     application_stack {
-      docker_image_name = "bkimminich/juice-shop:latest"
+      docker_image_name = "${var.container_image}"
+      docker_registry_url = "${var.container_docker_registry_url}"
+      
+
     }
   }
+
   tags = {
     environment = "Prod"
   }
+  
 }
 
 # third step: print out the DNS name created

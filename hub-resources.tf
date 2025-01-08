@@ -2,7 +2,7 @@
 module "hub-vnet" {
   source = "./modules/vnet"
 
-  virtual_network_name          = "az-conn-prod-noeast-vnet"
+  virtual_network_name          = "az-conn-prod-vnet"
   resource_group_name           = module.hub-resourcegroup.rg_name
   location                      = module.hub-resourcegroup.rg_location
   virtual_network_address_space = ["10.50.0.0/16"]
@@ -59,7 +59,7 @@ module "public_ip_01" {
   source = "./modules/publicip"
 
   # Used for VPN Gateway 
-  public_ip_name      = "az-conn-prod-noeast-vgw-pip01"
+  public_ip_name      = "az-conn-prod-vgw-pip01"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
@@ -72,7 +72,7 @@ module "public_ip_02" {
   source = "./modules/publicip"
 
   # Used for Azure Firewall 
-  public_ip_name      = "az-conn-prod-noeast-afw-pip02"
+  public_ip_name      = "az-conn-prod-afw-pip02"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
@@ -84,7 +84,7 @@ module "public_ip_03" {
   source = "./modules/publicip"
 
   # Used for Azure Bastion
-  public_ip_name      = "az-conn-prod-noeast-bastion-pip03"
+  public_ip_name      = "az-conn-prod-bastion-pip03"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
@@ -94,7 +94,7 @@ module "public_ip_04" {
   source = "./modules/publicip"
 
   # Used for Azure Bastion
-  public_ip_name      = "az-conn-prod-noeast-afwmgmt-pip04"
+  public_ip_name      = "az-conn-prod-afwmgmt-pip04"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
@@ -106,7 +106,7 @@ module "azure_firewall_policy_01" {
   source     = "./modules/azurefirewallpolicy"
   depends_on = [module.hub-vnet]
 
-  azure_firewall_policy_name = "az-conn-prod-noeast-afw-pol01"
+  azure_firewall_policy_name = "az-conn-prod-afw-pol01"
   location                   = module.hub-resourcegroup.rg_location
   resource_group_name        = module.hub-resourcegroup.rg_name
   sku                        = "Basic"
@@ -119,7 +119,7 @@ module "azure_firewall_01" {
   source     = "./modules/azurefirewall"
   depends_on = [module.hub-vnet, module.azure_firewall_policy_01, module.azure_firewall_rule_coll_group]
 
-  azure_firewall_name = "az-conn-prod-noeast-afw"
+  azure_firewall_name = "az-conn-prod-afw"
   location            = module.hub-resourcegroup.rg_location
   resource_group_name = module.hub-resourcegroup.rg_name
   sku_name            = "AZFW_VNet"
@@ -142,7 +142,7 @@ module "azure_firewall_rule_coll_group" {
   source     = "./modules/azurefirewallrulecolgrp"
   depends_on = [module.hub-vnet, module.azure_firewall_policy_01]
 
-  azure_firewall_policy_coll_group_name = "az-conn-prod-noeast-afw-coll-pol01"
+  azure_firewall_policy_coll_group_name = "az-conn-prod-afw-coll-pol01"
   firewall_policy_id                    = module.azure_firewall_policy_01.id
   priority                              = 150
 
@@ -158,42 +158,42 @@ module "azure_firewall_rule_coll_group" {
   network_rule_coll_action_02   = "Allow"
   network_rules_02 = [
     {
-      name                  = "Spoke1toSpoke2"
+      name                  = "SpokeInternalApptoSpokeWorkstations"
       source_addresses      = ["10.51.0.0/16"]
       destination_addresses = ["10.52.0.0/16"]
       destination_ports     = ["*"]
       protocols             = ["Any"]
     },
     {
-      name                  = "Spoke2toSpoke1"
+      name                  = "SpokeWorkstationstoSpokeSpokeInternalApp"
       source_addresses      = ["10.52.0.0/16"]
       destination_addresses = ["10.51.0.0/16"]
       destination_ports     = ["*"]
       protocols             = ["Any"]
     },
     {
-      name                  = "Spoke1toSpoke3"
+      name                  = "SpokeInternalApptoSpokeExternalApp"
       source_addresses      = ["10.51.0.0/16"]
       destination_addresses = ["10.53.0.0/16"]
       destination_ports     = ["*"]
       protocols             = ["Any"]
     },
     {
-      name                  = "Spoke2toSpoke3"
+      name                  = "SpokeWorkstationstoSpokeExternalApp"
       source_addresses      = ["10.52.0.0/16"]
       destination_addresses = ["10.53.0.0/16"]
       destination_ports     = ["*"]
       protocols             = ["Any"]
     },
     {
-      name                  = "Spoke3toSpoke1"
+      name                  = "SpokeExternalApptoSpokeInternalApp"
       source_addresses      = ["10.53.0.0/16"]
       destination_addresses = ["10.51.0.0/16"]
       destination_ports     = ["*"]
       protocols             = ["Any"]
     },
     {
-      name                  = "Spoke3toSpoke2"
+      name                  = "SpokeExternalApptoSpokeWorkstations"
       source_addresses      = ["10.53.0.0/16"]
       destination_addresses = ["10.52.0.0/16"]
       destination_ports     = ["*"]
@@ -254,7 +254,7 @@ module "azure_firewall_rule_coll_group" {
 module "vm-bastion" {
   source = "./modules/bastion"
 
-  bastion_host_name   = "az-conn-prod-noeast-jmp-bastion"
+  bastion_host_name   = "az-conn-prod-jmp-bastion"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
 
@@ -262,5 +262,5 @@ module "vm-bastion" {
   subnet_id            = module.hub-vnet.vnet_subnet_id[1]
   public_ip_address_id = module.public_ip_03.public_ip_address_id
 
-  depends_on = [module.hub-vnet, module.azure_firewall_01, module.vm-jumpbox-01]
+  depends_on = [module.hub-vnet, module.azure_firewall_01]
 }

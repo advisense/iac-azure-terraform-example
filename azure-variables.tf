@@ -5,17 +5,6 @@ variable "admin_password" {
   description = "Admin Password"
 }
 
-variable "unique_prefix" {
-  type        = string
-  description = "Your unique application name, set this value in you local terraform.tfvars  - it is used as a prefix for all resources"
-}
-
-variable "company_name" {
-  type        = string
-  description = "my fake company name, all lowercase"
-  default     = "microsave"
-}
-
 # Location Resource Group
 variable "rg_location" {
   type        = string

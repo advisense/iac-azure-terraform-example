@@ -7,8 +7,8 @@ module "hub-resourcegroup" {
   az_rg_name     = "microsave-hub-resourcegroup"
   az_rg_location = var.rg_location
   az_tags = {
-    Role            = "Hub"
-    Environment     = "Prod"
+    Role        = "Hub"
+    Environment = "Prod"
   }
 }
 
@@ -19,8 +19,8 @@ module "internalapp-resourcegroup" {
   az_rg_name     = "microsave-internapp-resourcegroup"
   az_rg_location = var.rg_location
   az_tags = {
-    Role            = "InternalApp"
-    Environment     = "Prod"
+    Role        = "InternalApp"
+    Environment = "Prod"
   }
 }
 
@@ -31,8 +31,8 @@ module "internal-workstation-resourcegroup" {
   az_rg_name     = "microsave-workstations-resourcegroup"
   az_rg_location = var.rg_location
   az_tags = {
-    Role            = "Workstations"
-    Environment     = "Prod"
+    Role        = "Workstations"
+    Environment = "Prod"
   }
 }
 
@@ -43,8 +43,8 @@ module "externalapp-prod-resourcegroup" {
   az_rg_name     = "microsave-externalapp-prod-resourcegroup"
   az_rg_location = var.rg_location
   az_tags = {
-    Role            = "ExternalApp"
-    Environment     = "Prod"
+    Role        = "ExternalApp"
+    Environment = "Prod"
   }
 }
 
@@ -55,8 +55,8 @@ module "externalapp-test-resourcegroup" {
   az_rg_name     = "microsave-externalapp-test-resourcegroup"
   az_rg_location = var.rg_location
   az_tags = {
-    Role            = "CustomerApps"
-    Environment     = "Test"
+    Role        = "CustomerApps"
+    Environment = "Test"
   }
 }
 

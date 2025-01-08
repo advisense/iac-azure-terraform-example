@@ -2,7 +2,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "az-collection-pol01" {
   name               = var.azure_firewall_policy_coll_group_name
   firewall_policy_id = var.firewall_policy_id
   priority           = var.priority
-/*
+  /*
   network_rule_collection {
     name     = var.network_rule_coll_name_01
     priority = var.network_rule_coll_priority_01
@@ -66,7 +66,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "az-collection-pol01" {
       for_each = var.dnat_rules
       content {
         name = rule.value.name
-        
+
         protocols           = rule.value.protocols
         source_addresses    = rule.value.source_addresses
         destination_address = rule.value.destination_address

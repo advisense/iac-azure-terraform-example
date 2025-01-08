@@ -61,7 +61,6 @@ jobs:
     #Create tfvars file
     - name: Create terraform.tfvars
       run: | 
-        echo "unique_prefix=\"bob\"" > terraform.tfvars
         echo "admin_password=\"Cisco123!\"" >> terraform.tfvars
 
     # Generates an execution plan for Terraform

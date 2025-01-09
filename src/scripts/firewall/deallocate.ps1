@@ -1,4 +1,4 @@
-$firewall = Get-AzFirewall -name "<firewall-name>" -resourcegroupname "<resource-group-name>"
+$firewall = Get-AzFirewall -name microsave-firewall -resourcegroupname microsave-hub-resourcegroup
 
 $firewall.firewallpolicy = $null
 

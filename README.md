@@ -44,3 +44,19 @@ Remember to clean up and delete all the resources when the testing is done.
 
 * `terraform destroy`
 
+
+## GitHub pipeline
+
+This project has some pipelines defined, see: [.github/workflows/](.github/workflows/)
+These are:
+
+| Workflow | Description |
+| ------------- | ------------- |
+| [.github/workflows/tf-unit-tests.yml](.github/workflows/tf-unit-tests.yml) | Workflow running validation, format, security checks |
+| [.github/workflows/tf-plan-apply.yml](.github/workflows/tf-plan-apply.yml) | Workflow to deploy the changes to azure |
+| [.github/workflows/tf-drift.yml](.github/workflows/tf-drift.yml) | Daily check to see if the terraform state has drifted because someone else has made some changes. |
+
+
+## Cost saving on the infrastructure
+
+See [src/scripts/firewall/](src/scripts/firewall/README.md) to find description and script to reduce the onging cost of the test infrastructure when it's not in use.

@@ -1,7 +1,9 @@
 #### Create application and assign permissions
 az ad app create --display-name "kristianGithubActionsContributor"
-** Take note of the application (client) ID **
-#### create a service principle for your application, and assign desired roles to it
+
+**Take note of the application (client) ID**
+
+### create a service principle for your application, and assign desired roles to it
 az ad sp create --id <APPLICATION_ID>
 az role assignment create --assignee "<APPLICATION_ID>" --role "Contributor" --scope "/subscriptions/$ARM_SUBSCRIPTION_ID"
 az role assignment create --assignee <APPLICATION_ID>  --role "Reader and Data Access" --scope "/subscriptions/$ARM_SUBSCRIPTION_ID"

@@ -1,10 +1,10 @@
-$firewall = Get-AzFirewall -name "az-conn-prod-noeast-afw" -resourcegroupname "<resource-group-name>"
-$vnet = Get-AzVirtualNetwork -name "az-conn-prod-noeast-vnet" -resourcegroupname "<resource-group-name>"
+$firewall = Get-AzFirewall -name microsave-firewall -resourcegroupname microsave-hub-resourcegroup
+$vnet = Get-AzVirtualNetwork -name microsave-hub-vnet -resourcegroupname microsave-hub-resourcegroup
 
-$publicip = get-azpublicipaddress -name "<firewall-publicip-name>" -resourcegroupname "<resource-group-name>"
-$publicipmgmt = get-azpublicipaddress -name "<firewall-mgmt-publicip-name>" -resourcegroupname "<resource-group-name>"
+$publicip = get-azpublicipaddress -name microsave-firewall-public-ip-pip02 -resourcegroupname microsave-hub-resourcegroup
+$publicipmgmt = get-azpublicipaddress -name microsave-firewall-management-public-ip-pip04 -resourcegroupname microsave-hub-resourcegroup
 
-$firewallpolicy = Get-AzFirewallPolicy -name "<firewall-policy-name>" -ResourceGroupName "<resource-group-name>"
+$firewallpolicy = Get-AzFirewallPolicy -name microsave-firwall-policy-pol01 -ResourceGroupName microsave-hub-resourcegroup
 
 $firewall.firewallpolicy = $firewallpolicy.id
 $firewall.allocate($vnet, $publicip, $publicipmgmt)

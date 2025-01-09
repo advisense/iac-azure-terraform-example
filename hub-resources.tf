@@ -2,7 +2,7 @@
 module "hub-vnet" {
   source = "./modules/vnet"
 
-  virtual_network_name          = "az-conn-prod-vnet"
+  virtual_network_name          = "hub-vnet"
   resource_group_name           = module.hub-resourcegroup.rg_name
   location                      = module.hub-resourcegroup.rg_location
   virtual_network_address_space = ["10.50.0.0/16"]

@@ -90,5 +90,17 @@ module "vm-linux-01" {
   depends_on                      = [module.internalapp-vnet]
 }
 
+resource "azurerm_virtual_machine_extension" "linuxdb01-ext" {
+  name                 = "linuxdb01-ext"
+  virtual_machine_id   = module.vm-linux-01.id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
 
+  settings = <<SETTINGS
+ {
+  "script": "${base64encode(file(var.scfile))}"
+ }
+SETTINGS
+}
 

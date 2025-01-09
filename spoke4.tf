@@ -12,7 +12,7 @@ module "externalapp-test-vnet" {
       subnet_name      = "microsave-test-apps-snet"
       address_prefixes = ["10.54.1.0/24"]
       route_table_name = ""
-      snet_delegation  = ""
+      snet_delegation  = "appservice"
     }
   }
 }
@@ -36,6 +36,7 @@ resource "azurerm_linux_web_app" "app-service-test" {
   location            = module.externalapp-test-resourcegroup.rg_location
   resource_group_name = module.externalapp-test-resourcegroup.rg_name
   service_plan_id     = azurerm_service_plan.app-service-plan.id
+  virtual_network_subnet_id = module.externalapp-test-vnet.vnet_subnet_id[0]
 
   site_config {
     application_stack {

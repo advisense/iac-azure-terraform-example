@@ -22,20 +22,20 @@ Check that you have the latest versions before you continue.
 
 # USAGE
 
-1. Authenticate towards Azure (if you haven't already done this)
-    * `az login`
 1. Clone the repo
-1. Create the file terraform.tfvars
-    * `unique_prefix = "<INSERT_HERE>"`
-    * `admin_password = <INSERT_YOUR_PWD_HERE>`
-1. set env variables for your azure env
+2. set env variables for your azure env
     * `export ARM_TENANT_ID=<YOUR_AZURE_TENANT_ID>`
     * `export ARM_SUBSCRIPTION_ID=<YOUR_AZURE_SUBSCRIPTION_ID>`
-1. Initialize Terraform
+3. Authenticate towards Azure (if you haven't already done this)
+    * `az login`
+4. Create the file terraform.tfvars
+    * `admin_password = <INSERT_YOUR_PWD_HERE>`
+5. Initialize Terraform
     * `terraform init`
-1. Terraform plan
+6. Terraform plan
     * `terraform plan`
-1. Create all the resources
+7. Create all the resources 
+    * (optional, should be done by pushing no code to GitHub and the pipeline deploying)
     * `terraform apply`
 
 ## Clean up

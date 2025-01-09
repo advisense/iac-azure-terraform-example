@@ -59,7 +59,7 @@ module "public_ip_01" {
   source = "./modules/publicip"
 
   # Used for VPN Gateway 
-  public_ip_name      = "az-conn-prod-vgw-pip01"
+  public_ip_name      = "vpn-gateway-public-ip-pip01"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
@@ -72,7 +72,7 @@ module "public_ip_02" {
   source = "./modules/publicip"
 
   # Used for Azure Firewall 
-  public_ip_name      = "az-conn-prod-afw-pip02"
+  public_ip_name      = "firewall-public-ip-pip02"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
@@ -84,7 +84,7 @@ module "public_ip_03" {
   source = "./modules/publicip"
 
   # Used for Azure Bastion
-  public_ip_name      = "az-conn-prod-bastion-pip03"
+  public_ip_name      = "bastion-public-ip-pip03"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
@@ -94,7 +94,7 @@ module "public_ip_04" {
   source = "./modules/publicip"
 
   # Used for Azure Bastion
-  public_ip_name      = "az-conn-prod-afwmgmt-pip04"
+  public_ip_name      = "conn-afwmgmt-pip04"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
   allocation_method   = "Static"
@@ -106,7 +106,7 @@ module "azure_firewall_policy_01" {
   source     = "./modules/azurefirewallpolicy"
   depends_on = [module.hub-vnet]
 
-  azure_firewall_policy_name = "az-conn-prod-afw-pol01"
+  azure_firewall_policy_name = "conn-afw-pol01"
   location                   = module.hub-resourcegroup.rg_location
   resource_group_name        = module.hub-resourcegroup.rg_name
   sku                        = "Basic"
@@ -119,7 +119,7 @@ module "azure_firewall_01" {
   source     = "./modules/azurefirewall"
   depends_on = [module.hub-vnet, module.azure_firewall_policy_01, module.azure_firewall_rule_coll_group]
 
-  azure_firewall_name = "az-conn-prod-afw"
+  azure_firewall_name = "conn-afw"
   location            = module.hub-resourcegroup.rg_location
   resource_group_name = module.hub-resourcegroup.rg_name
   sku_name            = "AZFW_VNet"
@@ -142,7 +142,7 @@ module "azure_firewall_rule_coll_group" {
   source     = "./modules/azurefirewallrulecolgrp"
   depends_on = [module.hub-vnet, module.azure_firewall_policy_01]
 
-  azure_firewall_policy_coll_group_name = "az-conn-prod-afw-coll-pol01"
+  azure_firewall_policy_coll_group_name = "conn-afw-coll-pol01"
   firewall_policy_id                    = module.azure_firewall_policy_01.id
   priority                              = 150
 
@@ -254,7 +254,7 @@ module "azure_firewall_rule_coll_group" {
 module "vm-bastion" {
   source = "./modules/bastion"
 
-  bastion_host_name   = "az-conn-prod-jmp-bastion"
+  bastion_host_name   = "conn-jmp-bastion"
   resource_group_name = module.hub-resourcegroup.rg_name
   location            = module.hub-resourcegroup.rg_location
 

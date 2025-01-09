@@ -46,3 +46,9 @@ variable "container_docker_registry_url" {
   default     = "https://index.docker.io"
 }
 
+variable "scfile" {
+  type        = string
+  description = "the url of the container image to use"
+  default     = "vm-setup/db/db-install.sh"
+}
+

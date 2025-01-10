@@ -158,7 +158,8 @@ module "route_tables" {
     module.internalapp-vnet.vnet_subnet_id[0],
     module.internalapp-vnet.vnet_subnet_id[1],
     module.workstations-vnet.vnet_subnet_id[0],
-    module.externalapp-prod-vnet.vnet_subnet_id[0]
+    module.externalapp-prod-vnet.vnet_subnet_id[0],
+    module.externalapp-test-vnet.vnet_subnet_id[0]
   ]
 
 }

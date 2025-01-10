@@ -198,6 +198,13 @@ module "azure_firewall_rule_coll_group" {
       destination_addresses = ["10.52.0.0/16"]
       destination_ports     = ["*"]
       protocols             = ["Any"]
+    },
+    {
+      name                  = "DatabasetoInternet"
+      source_addresses      = ["10.51.2.4"]
+      destination_addresses = ["*"]
+      destination_ports     = ["80", "443"]
+      protocols             = ["Any"]
     }
   ]
 

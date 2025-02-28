@@ -32,10 +32,10 @@ resource "azurerm_service_plan" "app-service-plan" {
 
 # second step: create the app-service with reference to the juice-shop docker image
 resource "azurerm_linux_web_app" "app-service" {
-  name                = "microsave-prod-app-service"
-  location            = module.externalapp-prod-resourcegroup.rg_location
-  resource_group_name = module.externalapp-prod-resourcegroup.rg_name
-  service_plan_id     = azurerm_service_plan.app-service-plan.id
+  name                      = "microsave-prod-app-service"
+  location                  = module.externalapp-prod-resourcegroup.rg_location
+  resource_group_name       = module.externalapp-prod-resourcegroup.rg_name
+  service_plan_id           = azurerm_service_plan.app-service-plan.id
   virtual_network_subnet_id = module.externalapp-test-vnet.vnet_subnet_id[0]
 
 

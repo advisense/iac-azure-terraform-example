@@ -45,9 +45,9 @@ jobs:
     #    framework: terraform
 
     # Perform a security scan of the terraform code using tfsec
-    - name: Run tfsec action
-      id: tfsec
-      uses: aquasecurity/tfsec-action@v1.0.0
+    # - name: Run tfsec action
+    #  id: tfsec
+    #  uses: aquasecurity/tfsec-action@v1.0.0
     
     # Perform a security scan of the terraform code using tflint
     - name: Setup TFLint

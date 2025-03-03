@@ -38,16 +38,16 @@ jobs:
       run: terraform fmt -check -recursive
     
     # Perform a security scan of the terraform code using checkov
-    # - name: Run Checkov action
-    #  id: checkov
-    #  uses: bridgecrewio/checkov-action@master
-    #  with: 
-    #    framework: terraform
+    - name: Run Checkov action
+      id: checkov
+      uses: bridgecrewio/checkov-action@master
+      with: 
+        framework: terraform
 
     # Perform a security scan of the terraform code using tfsec
-    # - name: Run tfsec action
-    #  id: tfsec
-    #  uses: aquasecurity/tfsec-action@v1.0.0
+    - name: Run tfsec action
+      id: tfsec
+      uses: aquasecurity/tfsec-action@v1.0.0
     
     # Perform a security scan of the terraform code using tflint
     - name: Setup TFLint

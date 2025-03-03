@@ -29,10 +29,12 @@ jobs:
 
     # Validate terraform files
     - name: Terraform Validate
+      id: terraform-validate
       run: terraform validate
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
+      id: terraform-fmt
       run: terraform fmt -check -recursive
     
     # Perform a security scan of the terraform code using checkov
@@ -41,6 +43,30 @@ jobs:
       uses: bridgecrewio/checkov-action@master
       with: 
         framework: terraform
+
+    # Perform a security scan of the terraform code using tfsec
+    - name: Run tfsec action
+      id: tfsec
+      uses: aquasecurity/tfsec-action@v1.0.0
+    
+    # Perform a security scan of the terraform code using tflint
+    - name: Setup TFLint
+      id: tflint
+      uses: terraform-linters/setup-tflint@v3
+      with:
+       tflint_version: latest
+
+    # Display TFLint version
+    - name: TFLint Version
+      run: tflint --version
+    
+    # Initialize TFLint plugins
+    - name: TFLint Plugin Init
+      run: tflint --init
+    
+    # Run TFLint to check Terraform code quality
+    - name: TFLint Run
+      run: tflint
 
     # Upload results to GitHub Advanced Security
     # - name: Upload SARIF file

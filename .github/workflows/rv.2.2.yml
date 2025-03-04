@@ -1,0 +1,77 @@
+name: Security Risk Managment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+   - cron: '0 0 * * 1' # Run every Monday at 00:00
+  workflow_dispatch: # Allow manual triggering of the workflow
+
+jobs: 
+  security-risk-management:
+    name: Security Risk Management
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+    
+      # Step 1: Scan repository for vulnerabilities
+      - name: Scan repository for vulnerabilities
+        id: trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'docker.io/library/alpine:3.10'
+          format: table
+          exit-code: 0
+          severity: HIGH,CRITICAL
+          vuln-type: os,library,application
+          ignore-unfixed: false
+          
+        # Step 2: Rate the severity of the vulnerabilities and prioritize them
+      - name: Rate the severity of the vulnerabilities and prioritize them
+        id: evaliate-vulnerabilities
+        run: | 
+            echo "Rating and prioritizing vulnerabilities..."
+            node evaluate_risk.js trivy-report.json > risk_report.md
+        
+        # Step 3: If there is no permanent fix, create a temporary fix
+      - name: Create a temporary fix
+        id: apply-workarounds
+        run: | 
+            echo "Creating temporary fixes..."
+            echo "Implementering av midlertidige løsninger om nødvendig..."
+            node implement_workarounds.js risk_report.md
+
+        # Step 4: Generate a report of the vulnerabilities and the temporary fixes
+      - name: Generate a report of the vulnerabilities and update GitHub issues 
+        id: generate-advisory 
+        run: | 
+            echo "Generating report..." && \
+            node generate_advisory.js risk_report.md > advisory.md && \
+            gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat advisory.md)" --label "security"
+
+        # Step 5: Automated delivery of solutions (based on Trivy or Dependabot results)
+      - name: Deliver updates via Dependabot or Trivy
+        uses: dependabot/fetch-metadata@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          echo "Automatically updating and delivering solutions..."
+          dependabot file-creator --github-token ${{ secrets.GITHUB_TOKEN }} --updates
+
+    # Step 6: Update documentation
+      - name: Update documentation with risk assessment
+        run: |
+         echo "Updating documentation..."
+         node update_documentation.js risk_report.md advisory.md
+
+    # Step 7: Save the report as an artifact
+      - name: Save the report as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+         name: security-risk-report
+         path: risk_report.md

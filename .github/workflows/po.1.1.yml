@@ -1,0 +1,38 @@
+name: Security Requirements Report
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # Kjøres månedlig
+  push:
+    branches:
+      - main
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sjekk ut repo
+        uses: actions/checkout@v4
+
+      - name: Installer avhengigheter
+        run: |
+          sudo apt-get install -y pandoc
+          sudo apt-get update && sudo apt-get install -y curl
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+          trivy --version
+
+      - name: Kjør sikkerhetssjekker
+        run: |
+          trivy fs . > security-results.txt  # Bruker Trivy til å generere sikkerhetsrapport
+          echo "Sikkerhetsrapport generert"
+
+      - name: Generer rapport
+        run: |
+          cat security-results.txt > security-report.md
+          pandoc security-report.md -o security-report.pdf
+
+      - name: Last opp rapport som artefakt
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.pdf

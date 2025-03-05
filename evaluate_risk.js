@@ -1,29 +1,58 @@
 const fs = require('fs');
 
-// Sjekk at filen eksisterer
-const filePath = process.argv[2];
-if (!fs.existsSync(filePath)) {
-  console.error(`File ${filePath} not found`);
-  process.exit(1);
-}
+// Les trivy-rapporten
+const rawData = fs.readFileSync('trivy-report.json');
+const report = JSON.parse(rawData);
 
-// Les filen
-const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+// Logg dataen for å se hva den inneholder
+console.log('Parsed report:', report);
 
-// Logg data-strukturen for å se hvordan den ser ut
-console.log("Data structure:", data);
+// Anta at sårbarhetene er i en array under en bestemt nøkkel
+const vulnerabilities = report.Results ? report.Results.flatMap(result => result.Vulnerabilities || []) : [];
 
-// Sjekk om data.Results er et array
-if (Array.isArray(data.Results)) {
-  data.Results.forEach(target => {
-    console.log(`Target: ${target.Target}`);
-    target.Vulnerabilities.forEach(vuln => {
-      console.log(`Vulnerability ID: ${vuln.VulnerabilityID}`);
-      console.log(`Severity: ${vuln.Severity}`);
-      console.log(`Description: ${vuln.Description}`);
+// Logg sårbarhetene for å bekrefte at de er en array
+console.log('Parsed vulnerabilities:', vulnerabilities);
+
+// Funksjon for å vurdere risiko
+function evaluateRisk(vulnerabilities) {
+    return vulnerabilities.map(vuln => {
+        let severityScore;
+        switch (vuln.Severity) {
+            case 'CRITICAL':
+                severityScore = 5;
+                break;
+            case 'HIGH':
+                severityScore = 4;
+                break;
+            case 'MEDIUM':
+                severityScore = 3;
+                break;
+            case 'LOW':
+                severityScore = 2;
+                break;
+            default:
+                severityScore = 1;
+        }
+        return {
+            ...vuln,
+            severityScore
+        };
     });
-  });
-} else {
-  console.error("Data.Results is not an array:", data.Results);
-  process.exit(1);
 }
+
+// Vurder og prioriter sårbarhetene
+const evaluatedVulnerabilities = evaluateRisk(vulnerabilities);
+
+// Generer rapport
+let reportContent = '# Risk Report\n\n';
+evaluatedVulnerabilities.forEach(vuln => {
+    reportContent += `## ${vuln.VulnerabilityID}\n`;
+    reportContent += `- Severity: ${vuln.Severity}\n`;
+    reportContent += `- Severity Score: ${vuln.severityScore}\n`;
+    reportContent += `- Description: ${vuln.Description}\n\n`;
+});
+
+// Skriv rapporten til en fil
+fs.writeFileSync('risk_report.md', reportContent);
+
+console.log('Risk report generated successfully.');

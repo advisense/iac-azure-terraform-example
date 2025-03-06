@@ -2,7 +2,7 @@
 module "workstations-vnet" {
   source = "./modules/vnet"
 
-  virtual_network_name          = "microsave-vnet-workstations"
+  virtual_network_name          = "microsave-vnet-workstation"
   resource_group_name           = module.internal-workstation-resourcegroup.rg_name
   location                      = module.internal-workstation-resourcegroup.rg_location
   virtual_network_address_space = ["10.52.0.0/16"]
@@ -49,4 +49,3 @@ module "desktop-windows-01" {
   provision_vm_agent = true
   depends_on         = [module.workstations-vnet]
 }
-

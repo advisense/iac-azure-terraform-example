@@ -49,4 +49,3 @@ module "desktop-windows-01" {
   provision_vm_agent = true
   depends_on         = [module.workstations-vnet]
 }
-

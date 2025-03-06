@@ -15,24 +15,28 @@ jobs:
       - name: Sjekk ut repo
         uses: actions/checkout@v4
 
-      - name: Installer avhengigheter
+      - name: Installing pandoc and trivy
         run: |
           sudo apt-get install -y pandoc
-          sudo apt-get update && sudo apt-get install -y curl
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-          trivy --version
+          sudo apt-get install -y trivy
 
-      - name: Kjør sikkerhetssjekker
-        run: |
-          trivy fs . > security-results.txt  # Bruker Trivy til å generere sikkerhetsrapport
-          echo "Sikkerhetsrapport generert"
+          - name: Run Trivy vulnerability scanner
+          uses: aquasecurity/trivy-action@master
+          with:
+            scan-type: 'fs'
+            scan-ref: '.'
+            format: 'json'
+            output: 'security-results.json'
 
-      - name: Generer rapport
+      - name: Convert security report to Markdown
         run: |
-          cat security-results.txt > security-report.md
+          jq -r '.Results[] | "### \(.Target)\nVulnerabilities:\n\(.Vulnerabilities | map("- " + .VulnerabilityID + " (" + .Severity + ")") | join("\n"))\n"' security-results.json > security-report.md
+
+      - name: Convert Markdown to PDF
+        run: |
           pandoc security-report.md -o security-report.pdf
 
-      - name: Last opp rapport som artefakt
+      - name: Upload security report as artifact
         uses: actions/upload-artifact@v4
         with:
           name: security-report

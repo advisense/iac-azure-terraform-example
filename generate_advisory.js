@@ -1,16 +1,16 @@
 const fs = require('fs');
 
-// Sjekk at filen risikovurdering eksisterer
+// Check if file risk assesment exists
 const riskReportPath = process.argv[2];
 if (!fs.existsSync(riskReportPath)) {
   console.error(`File ${riskReportPath} not found!`);
   process.exit(1);
 }
 
-// Les inn risikovurderingsrapporten
+// Read risk assesment rapport
 const riskReport = fs.readFileSync(riskReportPath, 'utf8');
 
-// Generer en enkel rapport som eksempel
+// Generate advisory report
 const advisoryReport = `
 ## Security Advisory
 
@@ -24,10 +24,9 @@ ${riskReport}
 - Apply available patches or workarounds.
 `;
 
-// Skriv ut advisories-rapporten til konsollen (eller til en fil)
+// Write advisory report to file
 console.log(advisoryReport);
 
-// Du kan også velge å skrive den til en fil om nødvendig
 fs.writeFileSync('advisory.md', advisoryReport);
 
 process.exit(0);

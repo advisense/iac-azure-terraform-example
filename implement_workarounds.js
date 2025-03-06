@@ -1,6 +1,6 @@
 console.log("Implementing temporary workarounds...");
 
-// Simulerer en workaround, f.eks. opprette en dummy-fil hvis den mangler
+// Simulate new workaround, e.g. create a dummy file if it is missing
 const fs = require('fs');
 const dummyConfig = 'config.json';
 

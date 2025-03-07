@@ -1,0 +1,16 @@
+name: Manual Review for Main Branch
+
+on:
+  push:
+    
+
+jobs:
+  manual_review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Manual Approval
+        uses: hmarr/auto-approve-action@v2.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+

@@ -20,19 +20,18 @@ jobs:
         uses: actions/checkout@v4
     
       # Step 1: Scan repository for vulnerabilities
-      - name: Scan repository for vulnerabilities
+      - name: Scan entire repository for vulnerabilities
         id: trivy
-        # Uses the Trivy action to scan the repository for vulnerabilities
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'docker.io/library/alpine:3.10'
-          format: json  # Shows the scan results in the terminal and saves them to a JSON file
-          output: trivy-report.json  # Save the results to a JSON file
+          scan-type: 'fs'  # Skanner hele filsystemet (repoet)
+          format: json
+          output: trivy-report.json
           exit-code: 0
           severity: HIGH,CRITICAL
           vuln-type: os,library
           ignore-unfixed: false
-        continue-on-error: true
+
           
       # Step 2: Rate the severity of the vulnerabilities and prioritize them
       - name: Rate the severity of the vulnerabilities and prioritize them

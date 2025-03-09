@@ -24,7 +24,7 @@ jobs:
       # Step 1: Scan repository for vulnerabilities
       - name: Scan repository for vulnerabilities
         id: trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.2.0
         with:
           scan-type: 'fs'  # Skanner hele filsystemet
           format: json  # Lag JSON-rapport

@@ -1,4 +1,4 @@
-name: rv.2.2: Security Risk Management
+name: rv.2.2_Security Risk Management
 
 on:
   push:

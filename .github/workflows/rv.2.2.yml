@@ -11,16 +11,16 @@ on:
     - cron: '0 0 * * 1' # Run every Monday at 00:00
   workflow_dispatch: # Allow manual triggering of the workflow
 
-jobs: 
+jobs:
   security-risk-management:
     name: Security Risk Management
     runs-on: ubuntu-latest
     steps:
-     - name: Checkout repository
-       uses: actions/checkout@v4
-       with:
-        fetch-depth: 0  # Hent hele git-historikken
-    
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Hent hele git-historikken
+      
       # Step 1: Scan repository for vulnerabilities
       - name: Scan repository for vulnerabilities
         id: trivy
@@ -37,27 +37,24 @@ jobs:
       # Debug sjekk 
       - name: Debug Trivy Report
         run: |
-            ls -lah  # List alle filer i repoet
-            cat trivy-report.json || echo "Trivy report not found!"
-      # Eksisterer ikke file stopp 
+          ls -lah  # List alle filer i repoet
+          cat trivy-report.json || echo "Trivy report not found!"
+      
+      # Eksisterer ikke filen, stopp
       - name: Ensure Trivy report exists
         run: |
           if [ ! -f trivy-report.json ]; then
             echo "Error: trivy-report.json was not generated!"
             exit 1
           fi
-
+      
       # Step 2: Rate the severity of the vulnerabilities and prioritize them
       - name: Rate the severity of the vulnerabilities and prioritize them
         id: evaluate-vulnerabilities
         run: | 
-          if [ ! -f trivy-report.json ]; then
-            echo "trivy-report.json not found!"
-            exit 1
-          fi
           echo "Rating and prioritizing vulnerabilities..."
           node evaluate_risk.js trivy-report.json > risk_report.md
-        
+      
       # Step 3: If there is no permanent fix, create a temporary fix
       - name: Create a temporary fix
         id: apply-workarounds
@@ -67,47 +64,39 @@ jobs:
             echo "risk_report.md not found!"
             exit 1
           fi
-          echo "risk_report.md found. Proceeding with temporary fixes..."
           echo "Creating temporary fixes..."
           node implement_workarounds.js risk_report.md
-          echo "Temporary fixes applied successfully."
-
-      # Step 4: Generate a report of the vulnerabilities and the temporary fixes
+      
+      # Step 4: Generate a report of the vulnerabilities and update GitHub issues 
       - name: Generate a report of the vulnerabilities and update GitHub issues 
         id: generate-advisory 
         run: | 
-          echo "Generating report..." && \
-          node generate_advisory.js risk_report.md > advisory.md && \
-          echo "Report generated:" && \
-          cat advisory.md && \
+          echo "Generating report..."
+          node generate_advisory.js risk_report.md > advisory.md
+          cat advisory.md
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat advisory.md)" --label "security"
         env:
-          TRIVY_EXIT_CODE: 0
-          TRIVY_SEVERITY: HIGH,CRITICAL
-          TRIVY_FORMAT: json
-          TRIVY_OUTPUT: trivy-report.json
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Bruk den innebygde GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-    # Updates with Dependabot or Trivy    
+      # Updates with Dependabot or Trivy    
       - name: Deliver updates via Dependabot or Trivy
         if: github.event_name == 'pull_request' && github.event.pull_request.user && (github.event.pull_request.user.login == 'dependabot[bot]' || steps.trivy.outputs.exit-code == '0')
         uses: dependabot/fetch-metadata@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
+      
       - name: Run Dependabot file creator
         if: github.event_name == 'pull_request' && github.event.pull_request.user && (github.event.pull_request.user.login == 'dependabot[bot]' || steps.trivy.outputs.exit-code == '0')
         run: |
-            echo "Automatically updating and delivering solutions..."
-            dependabot file-creator --github-token ${{ secrets.GITHUB_TOKEN }} --updates
-
-        
-       # Step 6: Update documentation
+          echo "Automatically updating and delivering solutions..."
+          dependabot file-creator --github-token ${{ secrets.GITHUB_TOKEN }} --updates
+      
+      # Step 6: Update documentation
       - name: Update documentation with risk assessment
         run: |
           echo "Updating documentation..."
           node update_documentation.js risk_report.md advisory.md
-
+      
       # Step 7: Save the report as an artifact
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4

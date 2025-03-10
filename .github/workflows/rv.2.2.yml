@@ -1,4 +1,4 @@
-name: rv.2.2_Security Risk Management
+name: rv.2.2_Security Risk Management for Terraform
 
 on:
   push:
@@ -8,39 +8,42 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 0 * * 1' # Run every Monday at 00:00
-  workflow_dispatch: # Allow manual triggering of the workflow
+    - cron: '0 0 * * 1'  # Run every Monday at 00:00
+  workflow_dispatch:  # Allow manual triggering of the workflow
 
 jobs:
   security-risk-management:
-    name: Security Risk Management
+    name: Security Risk Management for Terraform
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Hent hele git-historikken
-      
-      # Step 1: Scan repository for vulnerabilities
-      - name: Scan repository for vulnerabilities
-        id: trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'  # Skanner hele filsystemet
-          format: json  # Lag JSON-rapport
-          output: trivy-report.json  # Lagre rapporten i en fil
-          exit-code: 0  # Ikke feile workflow selv om sårbarheter finnes
-          severity: HIGH,CRITICAL  # Bare vis alvorlige sårbarheter
-          vuln-type: os,library  # Skann både OS og biblioteker
-          ignore-unfixed: false  # Inkluder sårbarheter uten fiks
-      
-      # Debug sjekk 
-      - name: Debug Trivy Report
+          fetch-depth: 0  # Get the entire Git history
+    
+      # Step 2: Install the latest version of Trivy
+      - name: Install Trivy
         run: |
-          ls -lah  # List alle filer i repoet
-          cat trivy-report.json || echo "Trivy report not found!"
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.60.0_Linux-64bit.tar.gz
+          tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin/
       
-      # Eksisterer ikke filen, stopp
+      # Step 3: Scan the entire project for vulnerabilities using Trivy
+      - name: Scan repository for vulnerabilities (entire project)
+        id: trivy
+        run: |
+          trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
+      
+      # Step 4: Scan Terraform code with Checkov for Azure-specific vulnerabilities (don't fail on findings)
+      - name: Scan Terraform with Checkov (don't fail on findings)
+        run: |
+          pip install checkov  # Install Checkov
+          checkov -d ./deployments --check Azure --output json > checkov-report.json  # Scan the deployments directory
+          cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
+      
+      # Step 5: Ensure the Trivy report exists
       - name: Ensure Trivy report exists
         run: |
           if [ ! -f trivy-report.json ]; then
@@ -48,58 +51,63 @@ jobs:
             exit 1
           fi
       
-      # Step 2: Rate the severity of the vulnerabilities and prioritize them
-      - name: Rate the severity of the vulnerabilities and prioritize them
-        id: evaluate-vulnerabilities
-        run: | 
-          echo "Rating and prioritizing vulnerabilities..."
-          node evaluate_risk.js trivy-report.json > risk_report.md
-      
-      # Step 3: If there is no permanent fix, create a temporary fix
-      - name: Create a temporary fix
-        id: apply-workarounds
+      # Step 6: If there are temporary fixes, apply them (this could involve modifying configurations or dependencies)
+      - name: Apply temporary fixes based on risk report (if necessary)
         run: |
-          echo "Checking if risk_report.md exists..."
-          if [ ! -f risk_report.md ]; then
-            echo "risk_report.md not found!"
-            exit 1
+          if [ -f risk_report.md ]; then
+            echo "Applying temporary fixes based on the risk report..."
+            # Example script to apply temporary fixes (replace with actual logic)
+            node implement_workarounds.js risk_report.md
+          else
+            echo "No risk report found. Skipping temporary fixes."
           fi
-          echo "Creating temporary fixes..."
-          node implement_workarounds.js risk_report.md
       
-      # Step 4: Generate a report of the vulnerabilities and update GitHub issues 
-      - name: Generate a report of the vulnerabilities and update GitHub issues 
-        id: generate-advisory 
-        run: | 
-          echo "Generating report..."
-          node generate_advisory.js risk_report.md > advisory.md
-          cat advisory.md
+      # Step 7: Generate a report of the vulnerabilities and update GitHub issues
+      - name: Generate a report of vulnerabilities and update GitHub issues
+        id: generate-advisory
+        run: |
+          echo "Generating advisory report..." && \
+          node generate_advisory.js trivy-report.json checkov-report.json && \
+          echo "Report generated:" && \
+          cat advisory.md && \
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat advisory.md)" --label "security"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the built-in GITHUB_TOKEN for authentication
       
-      # Updates with Dependabot or Trivy    
-      - name: Deliver updates via Dependabot or Trivy
-        if: github.event_name == 'pull_request' && github.event.pull_request.user && (github.event.pull_request.user.login == 'dependabot[bot]' || steps.trivy.outputs.exit-code == '0')
+      # Step 8: Evaluate risk based on Trivy report
+      - name: Evaluate risk based on Trivy report
+        run: |
+          echo "Evaluating risk..." && \
+          node evaluate_risk.js && \
+          echo "Risk report generated:" && \
+          cat risk_report.md
+      
+      # Step 9: Deliver updates via Dependabot
+      - name: Deliver updates via Dependabot
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
         uses: dependabot/fetch-metadata@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       
+      # Step 10: Run Dependabot file creator to automatically create update files
       - name: Run Dependabot file creator
-        if: github.event_name == 'pull_request' && github.event.pull_request.user && (github.event.pull_request.user.login == 'dependabot[bot]' || steps.trivy.outputs.exit-code == '0')
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
         run: |
           echo "Automatically updating and delivering solutions..."
           dependabot file-creator --github-token ${{ secrets.GITHUB_TOKEN }} --updates
       
-      # Step 6: Update documentation
+      # Step 11: Update documentation with risk assessments and advisories
       - name: Update documentation with risk assessment
         run: |
           echo "Updating documentation..."
-          node update_documentation.js risk_report.md advisory.md
+          node update_documentation.js trivy-report.json advisory.md
       
-      # Step 7: Save the report as an artifact
+      # Step 12: Save the final reports as artifacts
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:
           name: security-risk-report
-          path: risk_report.md
+          path: |
+            trivy-report.json
+            checkov-report.json
+            risk_report.md

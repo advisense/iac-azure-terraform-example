@@ -1,10 +1,11 @@
-name: Manual Review for Main Branch
+name: Manual Review of main and automatic review of other branches
 
 on:
   push:
+    branches:
+      - pw.7.1
     
-
-jobs:
+  jobs:
   manual_review:
     runs-on: ubuntu-latest
     steps:

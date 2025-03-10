@@ -11,6 +11,9 @@ on:
     - cron: '0 0 * * 1'  # Run every Monday at 00:00
   workflow_dispatch:  # Allow manual triggering of the workflow
 
+permissions:
+  issues: write
+
 jobs:
   security-risk-management:
     name: Security Risk Management for Terraform

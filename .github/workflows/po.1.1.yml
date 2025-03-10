@@ -1,0 +1,43 @@
+name: Security Requirements Report
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # Kjøres månedlig
+  push:
+    branches:
+      - main
+      - annSophie-po.1.1
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sjekk ut repo
+        uses: actions/checkout@v4
+
+      - name: Installing pandoc and trivy
+        run: |
+          sudo apt-get install -y pandoc
+          sudo apt-get install -y trivy
+
+          - name: Run Trivy vulnerability scanner
+          uses: aquasecurity/trivy-action@master
+          with:
+            scan-type: 'fs'
+            scan-ref: '.'
+            format: 'json'
+            output: 'security-results.json'
+
+      - name: Convert security report to Markdown
+        run: |
+          jq -r '.Results[] | "### \(.Target)\nVulnerabilities:\n\(.Vulnerabilities | map("- " + .VulnerabilityID + " (" + .Severity + ")") | join("\n"))\n"' security-results.json > security-report.md
+
+      - name: Convert Markdown to PDF
+        run: |
+          pandoc security-report.md -o security-report.pdf
+
+      - name: Upload security report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.pdf

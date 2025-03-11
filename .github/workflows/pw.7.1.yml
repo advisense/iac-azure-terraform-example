@@ -18,31 +18,51 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.0.11
+
+      # Initialize error counter
+      - name: Initialize Error Counter
+        run: echo "ERROR_COUNT=0" >> $GITHUB_ENV
+
       # Step 2: Initialize Terraform (without backend)
       - name: Terraform Init
         id: terraform-init
         run: terraform init -backend=false
+
       # Step 3: Check Terraform formatting
       - name: Terraform Format Check
         id: terraform-fmt
-        run: terraform fmt -check -recursive
+        run: terraform fmt -check -recursive || echo "ERROR_COUNT=$((ERROR_COUNT+1))" >> $GITHUB_ENV
         continue-on-error: true
+
       # Step 4: Validate Terraform configuration
       - name: Terraform Validate
         id: terraform-validate
-        run: terraform validate
+        run: terraform validate || echo "ERROR_COUNT=$((ERROR_COUNT+1))" >> $GITHUB_ENV
+
       # Step 5: Setup and run TFLint
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v3
         with:
           tflint_version: latest
         continue-on-error: true  
+
       # Step 6: Initialize TFLint plugins
       - name: TFLint Plugin Init
-        run: tflint
+        run: tflint || echo "ERROR_COUNT=$((ERROR_COUNT+1))" >> $GITHUB_ENV
         continue-on-error: true 
+
       # Step 7: Run tfsec for security scanning
       - name: Terraform Security Scan (tfsec)
         id: terraform-tfsec
         uses: aquasecurity/tfsec-action@v1.0.0
         continue-on-error: true  
+
+      - name: Write hello world to local runner variable
+        run: echo "HELLO_WORLD=Hello, ${{ github.actor }}" >> $GITHUB_ENV
+
+      - name: Read hello world from local runner variable
+        run: echo ${{ env.HELLO_WORLD }}
+
+      # Step 8: Echo the error count
+      - name: Echo Error Count
+        run: echo "Total Errors: ${{ env.ERROR_COUNT }}"

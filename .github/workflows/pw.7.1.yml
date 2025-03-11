@@ -2,8 +2,6 @@ name: PW.7.1
 
 on:
   push:
-    branches-ignore:
-      - main  # Skip main branch pushes for this workflow
     branches:
       - andreas-pw.7.1  # Run the workflow on the andreas-pw.7.1 branch
 

@@ -19,22 +19,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
     
-      # Step 1: Scan repository for vulnerabilities
+      # Step 1: Scan repository for vulnerabilities using Trivy
       - name: Scan repository for vulnerabilities
         id: trivy
-        # Uses the Trivy action to scan the repository for vulnerabilities
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'docker.io/library/alpine:3.10'
-          format: json  # Shows the scan results in the terminal and saves them to a JSON file
-          output: trivy-report.json  # Save the results to a JSON file
-          exit-code: 0
-          severity: HIGH,CRITICAL
-          vuln-type: os,library
-          ignore-unfixed: false
+        run: |
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.60.0_Linux-64bit.tar.gz
+          tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin/
+          trivy fs --scanners vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --pkg-types os,library .
+
+      # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
+      - name: Scan Terraform with Checkov
         continue-on-error: true
-          
-      # Step 2: Rate the severity of the vulnerabilities and prioritize them
+        run: |
+          pip install checkov  # Install Checkov
+          checkov -d . --framework terraform --output json > checkov-report.json  # Scan the entire repository
+          cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
+
+      # Step 3: Rate the severity of the vulnerabilities and prioritize them
       - name: Rate the severity of the vulnerabilities and prioritize them
         id: evaluate-vulnerabilities
         run: | 
@@ -45,7 +47,7 @@ jobs:
           echo "Rating and prioritizing vulnerabilities..."
           node evaluate_risk.js trivy-report.json > risk_report.md
         
-      # Step 3: If there is no permanent fix, create a temporary fix
+      # Step 4: If there is no permanent fix, create a temporary fix
       - name: Create a temporary fix
         id: apply-workarounds
         run: |
@@ -59,37 +61,19 @@ jobs:
           node implement_workarounds.js risk_report.md
           echo "Temporary fixes applied successfully."
 
-      # Step 4: Generate a report of the vulnerabilities and the temporary fixes
+      # Step 5: Generate a report of the vulnerabilities and the temporary fixes
       - name: Generate a report of the vulnerabilities and update GitHub issues 
         id: generate-advisory 
         run: | 
           echo "Generating report..." && \
-          node generate_advisory.js risk_report.md > advisory.md && \
+          node generate_advisory.js trivy-report.json checkov-report.json && \
           echo "Report generated:" && \
           cat advisory.md && \
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat advisory.md)" --label "security"
         env:
-          TRIVY_EXIT_CODE: 0
-          TRIVY_SEVERITY: HIGH,CRITICAL
-          TRIVY_FORMAT: json
-          TRIVY_OUTPUT: trivy-report.json
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Bruk den innebygde GITHUB_TOKEN
-      
-    # Updates with Dependabot or Trivy    
-      - name: Deliver updates via Dependabot or Trivy
-        if: github.event_name == 'pull_request' && github.event.pull_request.user && (github.event.pull_request.user.login == 'dependabot[bot]' || steps.trivy.outputs.exit-code == '0')
-        uses: dependabot/fetch-metadata@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run Dependabot file creator
-        if: github.event_name == 'pull_request' && github.event.pull_request.user && (github.event.pull_request.user.login == 'dependabot[bot]' || steps.trivy.outputs.exit-code == '0')
-        run: |
-            echo "Automatically updating and delivering solutions..."
-            dependabot file-creator --github-token ${{ secrets.GITHUB_TOKEN }} --updates
-
         
-       # Step 6: Update documentation
+      # Step 6: Update documentation
       - name: Update documentation with risk assessment
         run: |
           echo "Updating documentation..."
@@ -100,4 +84,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: security-risk-report
-          path: risk_report.md
+          path: |
+            trivy-report.json
+            checkov-report.json
+            risk_report.md
+            advisory.md

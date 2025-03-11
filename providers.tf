@@ -13,7 +13,7 @@ terraform {
     key                  = "terraform.tfstate"                     # Can be passed via `-backend-config=`"key=<blob key name>"` in the `init` command.
     use_oidc             = true
   }
-}
+} 
 
 # 2. Configure the AzureRM Provider
 provider "azurerm" {

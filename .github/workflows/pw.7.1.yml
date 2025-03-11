@@ -17,13 +17,34 @@ jobs:
       ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
-      WORKING_DIR: '/'
 
     steps:
       # Step 1: Checkout the repository code
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      # Step 2: Initialize Terraform (without backend)
+      - name: Terraform Init
+        id: terraform-init
+        run: terraform init -backend=false
+        
+
+      # Step 3: Check Terraform formatting
+      - name: Terraform Format Check
+        id: terraform-fmt
+        run: terraform fmt -check -recursive
+        
+
+      # Step 4: Validate Terraform configuration
+      - name: Terraform Validate
+        id: terraform-validate
+        run: terraform validate
       
+
+      # Step 5: Run tfsec for security scanning
+      - name: Terraform Security Scan (tfsec)
+        id: terraform-tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
       # Step 6: Setup TFLint (for Terraform linting)
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v3
@@ -42,7 +63,4 @@ jobs:
 
       # Step 9: Run TFLint to check Terraform code quality
       - name: TFLint Run
-        run: tflint --recursive
-        working-directory: ${{ env.WORKING_DIR }}
-
-      
+        run: tflint

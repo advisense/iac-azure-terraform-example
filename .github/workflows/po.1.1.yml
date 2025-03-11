@@ -32,17 +32,24 @@ jobs:
 
         # Step 4: Run CodeQL analysis
       - name: Run CodeQL analysis
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript
 
         # Step 5: Perform CodeQL analysis
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
         with:
           output: codeql-builtin-results.json
 
-        # Step 6: Install and run Checkov
+      # Step 6: Ensure CodeQL results file exists
+      - name: Ensure CodeQL results file exists
+        run: |
+          if [ ! -f codeql-results.json ]; then
+            touch codeql-results.json
+          fi
+
+        # Step 7: Install and run Checkov
       - name: Install and run Checkov
         run: |
           pip install checkov

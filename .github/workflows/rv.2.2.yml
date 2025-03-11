@@ -26,13 +26,13 @@ jobs:
           wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.60.0_Linux-64bit.tar.gz
           tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
-          trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
+          trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library
 
       # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov
         run: |
           pip install checkov  # Install Checkov
-          checkov -d . --output json > checkov-report.json  # Scan the entire repository
+          find . -name "*.tf" -exec checkov -f {} --output json \; > checkov-report.json  # Scan all .tf files in the repository
           cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
 
       # Step 3: Rate the severity of the vulnerabilities and prioritize them

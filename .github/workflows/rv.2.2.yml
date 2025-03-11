@@ -64,15 +64,11 @@ jobs:
         id: generate-advisory 
         run: | 
           echo "Generating report..." && \
-          node generate_advisory.js risk_report.md > advisory.md && \
+          node generate_advisory.js trivy-report.json checkov-report.json && \
           echo "Report generated:" && \
           cat advisory.md && \
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat advisory.md)" --label "security"
         env:
-          TRIVY_EXIT_CODE: 0
-          TRIVY_SEVERITY: HIGH,CRITICAL
-          TRIVY_FORMAT: json
-          TRIVY_OUTPUT: trivy-report.json
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Bruk den innebygde GITHUB_TOKEN
         
       # Step 5: Update documentation
@@ -86,4 +82,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: security-risk-report
-          path: risk_report.md
+          path: |
+            trivy-report.json
+            checkov-report.json
+            risk_report.md
+            advisory.md

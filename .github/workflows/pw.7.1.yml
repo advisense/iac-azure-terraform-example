@@ -42,7 +42,7 @@ jobs:
 
       # Step 9: Run TFLint to check Terraform code quality
       - name: TFLint Run
-        run: tflint
+        run: tflint --recursive
         working-directory: ${{ env.WORKING_DIR }}
 
       

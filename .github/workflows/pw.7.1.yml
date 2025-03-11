@@ -14,43 +14,53 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Terraform
+      # Step 2: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.0.11
-      # Step 2: Initialize Terraform (without backend)
+
+      # Step 3: Initialize Terraform (without backend)
       - name: Terraform Init
         id: terraform-init
         run: terraform init -backend=false
-     
 
-      # Step 3: Check Terraform formatting
+      # Step 4: Check Terraform formatting
       - name: Terraform Format Check
         id: terraform-fmt
         run: terraform fmt -check -recursive
         continue-on-error: true
-        
 
-      # Step 4: Validate Terraform configuration
+      # Step 5: Validate Terraform configuration
       - name: Terraform Validate
         id: terraform-validate
         run: terraform validate
-      
 
-      # Step 5: Run tfsec for security scanning
+      # Step 6: Run tfsec for security scanning
       - name: Terraform Security Scan (tfsec)
         id: terraform-tfsec
         uses: aquasecurity/tfsec-action@v1.0.0
         continue-on-error: true  
-      # Step 6: Setup and run TFLint
-      - name: Setup and run TFLint
+
+      # Step 7: Setup TFLint
+      - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v3
         with:
           tflint_version: latest
-        run: |
-          tflint --version
-          tflint --init
-          tflint
+
+      # Step 8: Display TFLint version
+      - name: TFLint Version
+        run: tflint --version
+
+      # Step 9: Initialize TFLint plugins
+      - name: TFLint Plugin Init
+        run: tflint --init
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        continue-on-error: true  
+
+      # Step 10: Run TFLint to check Terraform code quality
+      - name: TFLint Run
+        run: |
+          tflint --recursive > tflint_output.txt
+          cat tflint_output.txt
+        working-directory: ${{ env.WORKING_DIR }}
+        continue-on-error: true

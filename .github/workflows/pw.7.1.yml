@@ -22,36 +22,30 @@ jobs:
       - name: Terraform Init
         id: terraform-init
         run: terraform init -backend=false
-     
-
       # Step 3: Check Terraform formatting
       - name: Terraform Format Check
         id: terraform-fmt
         run: terraform fmt -check -recursive
         continue-on-error: true
-        
-
       # Step 4: Validate Terraform configuration
       - name: Terraform Validate
         id: terraform-validate
         run: terraform validate
-      
-
-      # Step 5: Run tfsec for security scanning
-      - name: Terraform Security Scan (tfsec)
-        id: terraform-tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
-        continue-on-error: true  
-      # Step 6: Setup and run TFLint
+      # Step 5: Setup and run TFLint
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v3
         with:
           tflint_version: latest
         continue-on-error: true  
-      # Step 8: Initialize TFLint plugins
+      # Step 6: Initialize TFLint plugins
       - name: TFLint Plugin Init
         run: | 
           tflint --init
           tflint
         env:
           GITHUB_TOKEN: ${{ github.token }}
+      # Step 7: Run tfsec for security scanning
+      - name: Terraform Security Scan (tfsec)
+        id: terraform-tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        continue-on-error: true  

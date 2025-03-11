@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
     
-      # Step 1: Scan repository for vulnerabilities
+      # Step 1: Scan repository for vulnerabilities using Trivy
       - name: Scan repository for vulnerabilities
         id: trivy
         run: |
@@ -28,7 +28,14 @@ jobs:
           sudo mv trivy /usr/local/bin/
           trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
 
-      # Step 2: Rate the severity of the vulnerabilities and prioritize them
+      # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
+      - name: Scan Terraform with Checkov
+        run: |
+          pip install checkov  # Install Checkov
+          checkov -d . --output json > checkov-report.json  # Scan the entire repository
+          cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
+
+      # Step 3: Rate the severity of the vulnerabilities and prioritize them
       - name: Rate the severity of the vulnerabilities and prioritize them
         id: evaluate-vulnerabilities
         run: | 
@@ -39,7 +46,7 @@ jobs:
           echo "Rating and prioritizing vulnerabilities..."
           node evaluate_risk.js trivy-report.json > risk_report.md
         
-      # Step 3: If there is no permanent fix, create a temporary fix
+      # Step 4: If there is no permanent fix, create a temporary fix
       - name: Create a temporary fix
         id: apply-workarounds
         run: |
@@ -53,7 +60,7 @@ jobs:
           node implement_workarounds.js risk_report.md
           echo "Temporary fixes applied successfully."
 
-      # Step 4: Generate a report of the vulnerabilities and the temporary fixes
+      # Step 5: Generate a report of the vulnerabilities and the temporary fixes
       - name: Generate a report of the vulnerabilities and update GitHub issues 
         id: generate-advisory 
         run: | 
@@ -65,13 +72,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Bruk den innebygde GITHUB_TOKEN
         
-      # Step 5: Update documentation
+      # Step 6: Update documentation
       - name: Update documentation with risk assessment
         run: |
           echo "Updating documentation..."
           node update_documentation.js risk_report.md advisory.md
 
-      # Step 6: Save the report as an artifact
+      # Step 7: Save the report as an artifact
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:

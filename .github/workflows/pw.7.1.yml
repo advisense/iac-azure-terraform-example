@@ -1,22 +1,71 @@
-name: Lint Terraform Code
+name: Terraform Test and Validate
 
 on:
   push:
-    branches:
-      - andreas-pw.7.1
+    branches-ignore:
+      - main  # Skip main branch pushes for this workflow
+    paths:
+      - '**.tf'  # Trigger only on changes to .tf files
 
 jobs:
-  lint:
+  test-and-validate:
     runs-on: ubuntu-latest
+    name: Terraform Test and Validate
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZ_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZ_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZ_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZ_TENANT_ID }}
+      WORKING_DIR: deployments  # Directory where Terraform files are located
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      # Step 1: Checkout the repository code
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Install TFLint
-      run: |
-        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+      # Step 2: Initialize Terraform (without backend)
+      - name: Terraform Init
+        id: terraform-init
+        run: terraform init -backend=false
+        working-directory: ${{ env.WORKING_DIR }}
 
-    - name: Lint Terraform Code
-      run: |
-        tflint --recursive
+      # Step 3: Check Terraform formatting
+      - name: Terraform Format Check
+        id: terraform-fmt
+        run: terraform fmt -check -recursive
+        working-directory: ${{ env.WORKING_DIR }}
+
+      # Step 4: Validate Terraform configuration
+      - name: Terraform Validate
+        id: terraform-validate
+        run: terraform validate
+        working-directory: ${{ env.WORKING_DIR }}
+
+      # Step 5: Run tfsec for security scanning
+      - name: Terraform Security Scan (tfsec)
+        id: terraform-tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: ${{ env.WORKING_DIR }}
+
+      # Step 6: Setup TFLint (for Terraform linting)
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v3
+        with:
+          tflint_version: latest
+
+      # Step 7: Display TFLint version
+      - name: TFLint Version
+        run: tflint --version
+
+      # Step 8: Initialize TFLint plugins
+      - name: TFLint Plugin Init
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      # Step 9: Run TFLint to check Terraform code quality
+      - name: TFLint Run
+        run: tflint
+        working-directory: ${{ env.WORKING_DIR }}

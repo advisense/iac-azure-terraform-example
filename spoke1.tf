@@ -21,7 +21,7 @@ module "internalapp-vnet" {
       snet_delegation  = ""
     }
   }
-}
+} 
 
 # a windows based servers used to run the internal app service
 module "app-windows-01" {

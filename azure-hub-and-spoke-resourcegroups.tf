@@ -23,7 +23,7 @@ module "internalapp-resourcegroup" {
     Environment = "Prod"
   }
 }
-
+ 
 # SPOKE 2 is the company's SPOKE for Virtual Workstations
 module "internal-workstation-resourcegroup" {
   source = "./modules/resourcegroups"

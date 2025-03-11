@@ -134,7 +134,7 @@ module "azure_firewall_01" {
   subnet_id_mgmt            = module.hub-vnet.vnet_subnet_id[2]
   public_ip_address_id_mgmt = module.public_ip_04.public_ip_address_id
 }
-
+ 
 
  
 

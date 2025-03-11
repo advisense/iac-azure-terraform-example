@@ -56,13 +56,6 @@ jobs:
         id: terraform-tfsec
         uses: aquasecurity/tfsec-action@v1.0.0
         continue-on-error: true  
-
-      - name: Write hello world to local runner variable
-        run: echo "HELLO_WORLD=Hello, ${{ github.actor }}" >> $GITHUB_ENV
-
-      - name: Read hello world from local runner variable
-        run: echo ${{ env.HELLO_WORLD }}
-
       # Step 8: Echo the error count
       - name: Echo Error Count
         run: echo "Total Errors\':' ${{ env.ERROR_COUNT }}"

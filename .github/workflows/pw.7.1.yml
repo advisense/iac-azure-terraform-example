@@ -18,4 +18,6 @@ jobs:
         curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
 
     - name: Lint Terraform Code
-      run:  tflint --recursive
+      run: |
+        tflint --recursive > tflint_output.txt
+        cat tflint_output.txt

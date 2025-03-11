@@ -1,17 +1,35 @@
-name: Manual Review of main and automatic review of other branches
+name: PW.7.1
 
 on:
   push:
     branches:
-      - pw.7.1
-    
-  jobs:
-  manual_review:
+      - andreas-pw.7.1
+  workflow_dispatch:
+jobs:
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Manual Approval
-        uses: hmarr/auto-approve-action@v2.0.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Run build
+      run: echo "Building the project..."
+
+  review:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Manual approval
+      uses: hmarr/auto-approve-action@v2
+      with:
+        GITHUB_TOKEN: ${{ secrets.PAT }}
+
+  publish:
+    needs: review
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Publish
+      run: echo "Publishing the project..."

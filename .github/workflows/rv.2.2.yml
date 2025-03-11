@@ -33,7 +33,7 @@ jobs:
         continue-on-error: true
         run: |
           pip install checkov  # Install Checkov
-          checkov -d . --output json > checkov-report.json  # Scan the entire repository
+          checkov -d . --framework terraform --output json > checkov-report.json  # Scan the entire repository
           cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
 
       # Step 3: Rate the severity of the vulnerabilities and prioritize them

@@ -65,4 +65,4 @@ jobs:
 
       # Step 8: Echo the error count
       - name: Echo Error Count
-        run: echo "Total Errors: ${{ env.ERROR_COUNT }}"
+        run: echo "Total Errors\':' ${{ env.ERROR_COUNT }}"

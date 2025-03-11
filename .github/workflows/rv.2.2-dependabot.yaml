@@ -2,7 +2,15 @@
 # It belongs to the Dependabot auto-label and fetch metadata workflow group and covers point rv.2.2 in SSDF. 
 
 name: Dependabot auto-label and fetch metadata
-on: pull_request
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_run:
+    workflows: ["rv.2.2_Security Risk Management for Terraform"]
+    types:
+      - completed
 
 permissions:
   pull-requests: write
@@ -12,8 +20,11 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.repository == 'advisense/iac-azure-terraform-example'
+    if: github.event.workflow_run.conclusion == 'success' || (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]')
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v2
@@ -47,3 +58,9 @@ jobs:
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Dependabot file creator to automatically create update files
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
+        run: |
+          echo "Automatically updating and delivering solutions..."
+          dependabot file-creator --github-token ${{ secrets.GITHUB_TOKEN }} --updates

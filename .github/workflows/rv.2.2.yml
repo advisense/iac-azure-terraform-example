@@ -86,13 +86,13 @@ jobs:
           cat risk_report.md
 
       # Step 9: Update documentation with risk assessments and advisories
-      - name: Update documentation with risk assessment
+      - name: Update documentation with risk assessments and advisories
         run: |
           echo "Updating documentation..."
           node update_documentation.js trivy-report.json advisory.md
 
       # Step 10: Save the final reports as artifacts
-      - name: Save the report as an artifact
+      - name: Save the final reports as artifacts
         uses: actions/upload-artifact@v4
         with:
           name: security-risk-report

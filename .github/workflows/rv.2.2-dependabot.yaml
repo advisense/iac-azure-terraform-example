@@ -7,10 +7,6 @@ on:
   pull_request:
     branches:
       - main
-  workflow_run:
-    workflows: ["rv.2.2_Security Risk Management for Terraform"]
-    types:
-      - completed
 
 permissions:
   pull-requests: write
@@ -20,7 +16,7 @@ permissions:
 jobs:
   dependabot:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' || (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]')
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

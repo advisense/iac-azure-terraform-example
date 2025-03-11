@@ -61,15 +61,15 @@ jobs:
           node implement_workarounds.js risk_report.md
           echo "Temporary fixes applied successfully."
 
-      # Step 5: Generate a report of the vulnerabilities and the temporary fixes
-      - name: Generate a report of the vulnerabilities and update GitHub issues 
+      # Step 5: Generate a detailed report of the vulnerabilities and the temporary fixes
+      - name: Generate a detailed report of the vulnerabilities and update GitHub issues 
         id: generate-advisory 
         run: | 
-          echo "Generating report..." && \
-          node generate_advisory.js trivy-report.json checkov-report.json && \
-          echo "Report generated:" && \
-          cat advisory.md && \
-          gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat advisory.md)" --label "security"
+          echo "Generating detailed report..." && \
+          node generate_detailed_advisory.js trivy-report.json checkov-report.json && \
+          echo "Detailed report generated:" && \
+          cat detailed_advisory.md && \
+          gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)" --label "security"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Bruk den innebygde GITHUB_TOKEN
         
@@ -77,7 +77,7 @@ jobs:
       - name: Update documentation with risk assessment
         run: |
           echo "Updating documentation..."
-          node update_documentation.js risk_report.md advisory.md
+          node update_documentation.js risk_report.md detailed_advisory.md
 
       # Step 7: Save the report as an artifact
       - name: Save the report as an artifact
@@ -88,4 +88,4 @@ jobs:
             trivy-report.json
             checkov-report.json
             risk_report.md
-            advisory.md
+            detailed_advisory.md

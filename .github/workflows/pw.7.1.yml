@@ -19,10 +19,4 @@ jobs:
 
     - name: Lint Terraform Code
       run: |
-        tflint --recursive > tflint_output.txt
-        if [ $? -ne 0 ]; then
-          echo "Linting failed"
-          cat tflint_output.txt
-          exit 1
-        fi
-        cat tflint_output.txt
+        tflint --recursive

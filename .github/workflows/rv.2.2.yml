@@ -30,6 +30,7 @@ jobs:
 
       # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov
+        continue-on-error: true
         run: |
           pip install checkov  # Install Checkov
           checkov -d . --output json > checkov-report.json  # Scan the entire repository

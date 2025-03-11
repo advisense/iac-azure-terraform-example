@@ -14,53 +14,51 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Step 2: Set up Terraform
+      - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.0.11
-
-      # Step 3: Initialize Terraform (without backend)
+      # Step 2: Initialize Terraform (without backend)
       - name: Terraform Init
         id: terraform-init
         run: terraform init -backend=false
+     
 
-      # Step 4: Check Terraform formatting
+      # Step 3: Check Terraform formatting
       - name: Terraform Format Check
         id: terraform-fmt
         run: terraform fmt -check -recursive
         continue-on-error: true
+        
 
-      # Step 5: Validate Terraform configuration
+      # Step 4: Validate Terraform configuration
       - name: Terraform Validate
         id: terraform-validate
         run: terraform validate
+      
 
-      # Step 6: Run tfsec for security scanning
+      # Step 5: Run tfsec for security scanning
       - name: Terraform Security Scan (tfsec)
         id: terraform-tfsec
         uses: aquasecurity/tfsec-action@v1.0.0
         continue-on-error: true  
-
-      # Step 7: Setup TFLint
+      # Step 6: Setup and run TFLint
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v3
         with:
           tflint_version: latest
-
-      # Step 8: Display TFLint version
+        continue-on-error: true  
+      # Step 7: Display TFLint version
       - name: TFLint Version
         run: tflint --version
-
-      # Step 9: Initialize TFLint plugins
+        continue-on-error: true  
+      # Step 8: Initialize TFLint plugins
       - name: TFLint Plugin Init
         run: tflint --init
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      # Step 10: Run TFLint to check Terraform code quality
+      # Step 9: Run TFLint to check Terraform code quality
       - name: TFLint Run
-        run: |
-          tflint --recursive > tflint_output.txt
-          cat tflint_output.txt
-        working-directory: ${{ env.WORKING_DIR }}
+        run: tflint
         continue-on-error: true

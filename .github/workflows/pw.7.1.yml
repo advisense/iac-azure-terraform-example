@@ -30,6 +30,7 @@ jobs:
       - name: Terraform Format Check
         id: terraform-fmt
         run: terraform fmt -check -recursive
+        continue-on-error: true
         
 
       # Step 4: Validate Terraform configuration

@@ -136,7 +136,7 @@ module "azure_firewall_01" {
 }
 
 
-
+ 
 
 module "azure_firewall_rule_coll_group" {
   source     = "./modules/azurefirewallrulecolgrp"

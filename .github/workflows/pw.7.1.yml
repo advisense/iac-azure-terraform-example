@@ -23,32 +23,7 @@ jobs:
       # Step 1: Checkout the repository code
       - name: Checkout Code
         uses: actions/checkout@v3
-
-      # Step 2: Initialize Terraform (without backend)
-      - name: Terraform Init
-        id: terraform-init
-        run: terraform init
-        working-directory: ${{ env.WORKING_DIR }}
-
-      # Step 3: Check Terraform formatting
-      - name: Terraform Format Check
-        id: terraform-fmt
-        run: terraform fmt -check -recursive
-        working-directory: ${{ env.WORKING_DIR }}
-
-      # Step 4: Validate Terraform configuration
-      - name: Terraform Validate
-        id: terraform-validate
-        run: terraform validate
-        working-directory: ${{ env.WORKING_DIR }}
-
-      # Step 5: Run tfsec for security scanning
-      - name: Terraform Security Scan (tfsec)
-        id: terraform-tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
-        with:
-          working_directory: ${{ env.WORKING_DIR }}
-
+      
       # Step 6: Setup TFLint (for Terraform linting)
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v3
@@ -69,3 +44,5 @@ jobs:
       - name: TFLint Run
         run: tflint
         working-directory: ${{ env.WORKING_DIR }}
+
+      

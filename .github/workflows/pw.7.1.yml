@@ -27,7 +27,7 @@ jobs:
       # Step 2: Initialize Terraform (without backend)
       - name: Terraform Init
         id: terraform-init
-        run: terraform init -backend=false
+        run: terraform init
         working-directory: ${{ env.WORKING_DIR }}
 
       # Step 3: Check Terraform formatting

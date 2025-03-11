@@ -11,7 +11,7 @@ module "hub-resourcegroup" {
     Environment = "Prod"
   }
 }
-
+ 
 # SPOKE 1 is the company's Application SPOKE for the internal application
 module "internalapp-resourcegroup" {
   source = "./modules/resourcegroups"

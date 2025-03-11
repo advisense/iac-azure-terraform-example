@@ -26,7 +26,7 @@ module "hub-vnet" {
       address_prefixes = ["10.50.2.0/24"]
       route_table_name = ""
       snet_delegation  = ""
-    },
+    }, 
     "AzureFirewallManagementSubnet" = {
       subnet_name      = "AzureFirewallManagementSubnet"
       address_prefixes = ["10.50.6.0/24"]

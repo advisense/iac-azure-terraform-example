@@ -1,8 +1,9 @@
 name: Lint Terraform Code
 
-on: push
-branches:
-  - andreas-pw.7.1
+on:
+  push:
+    branches:
+      - andreas-pw.7.1
 
 jobs:
   lint:

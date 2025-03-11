@@ -19,7 +19,7 @@ variable "ubuntu-linux-publisher" {
   description = "Ubuntu Linux Publisher used to build VMs"
   default     = "Canonical"
 }
-
+ 
 # Ubuntu Linux Offer used to build VMs
 variable "ubuntu-linux-offer" {
   type        = string

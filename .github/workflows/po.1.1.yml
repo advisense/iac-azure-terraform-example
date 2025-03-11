@@ -29,3 +29,13 @@ jobs:
         id: trivy
         run: |
           trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
+
+        # Step 4: Run CodeQL analysis
+      - name: Run CodeQL analysis
+        uses: github/codeql-action/init@v1
+        with:
+          languages: javascript
+
+        # Step 5: Perform CodeQL analysis
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v1

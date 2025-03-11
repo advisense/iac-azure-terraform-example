@@ -13,7 +13,7 @@ module "hub-vnet" {
   # module.hub-vnet.vnet_subnet_id[3] = AzureFirewallSubnet        - Alphabetical Order
   # module.hub-vnet.vnet_subnet_id[4] = GatewaySubnet              - Alphabetical Order
   # module.hub-vnet.vnet_subnet_id[5] = JumpboxSubnet              - Alphabetical Order
-
+ 
   subnet_names = {
     "GatewaySubnet" = {
       subnet_name      = "GatewaySubnet"

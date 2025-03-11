@@ -1,35 +1,20 @@
-name: PW.7.1
+name: Lint Terraform Code
 
-on:
-  push:
-    branches:
-      - andreas-pw.7.1
-  workflow_dispatch:
+on: push
+branches:
+  - andreas-pw.7.1
+
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Run build
-      run: echo "Building the project..."
+    - name: Install TFLint
+      run: |
+        curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
 
-  review:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Manual approval
-      uses: hmarr/auto-approve-action@v2
-      with:
-        GITHUB_TOKEN: ${{ secrets.PAT }}
-
-  publish:
-    needs: review
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Publish
-      run: echo "Publishing the project..."
+    - name: Lint Terraform Code
+      run:  tflint --recursive

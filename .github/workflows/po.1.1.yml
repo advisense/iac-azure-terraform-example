@@ -6,38 +6,26 @@ on:
   push:
     branches:
       - main
-      - annSophie-po.1.1
+      - annSophie-po.1.1  # For testing
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
   generate-report:
     runs-on: ubuntu-latest
     steps:
-      - name: Sjekk ut repo
+        # Step 1: Check out the repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Installing pandoc and trivy
+        # Step 2: Install the latest version of trivy
+      - name: Installing trivy
         run: |
-          sudo apt-get install -y pandoc
-          sudo apt-get install -y trivy
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.60.0_Linux-64bit.tar.gz
+          tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin/
 
-          - name: Run Trivy vulnerability scanner
-          uses: aquasecurity/trivy-action@master
-          with:
-            scan-type: 'fs'
-            scan-ref: '.'
-            format: 'json'
-            output: 'security-results.json'
-
-      - name: Convert security report to Markdown
+        # Step 3: Scan the entire project for vulnerabilitiues using trivy
+      - name: Scan repository for vulnerabilities (entire project)
+        id: trivy
         run: |
-          jq -r '.Results[] | "### \(.Target)\nVulnerabilities:\n\(.Vulnerabilities | map("- " + .VulnerabilityID + " (" + .Severity + ")") | join("\n"))\n"' security-results.json > security-report.md
-
-      - name: Convert Markdown to PDF
-        run: |
-          pandoc security-report.md -o security-report.pdf
-
-      - name: Upload security report as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-report
-          path: security-report.pdf
+          trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .

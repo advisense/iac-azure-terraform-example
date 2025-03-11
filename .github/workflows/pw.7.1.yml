@@ -4,8 +4,8 @@ on:
   push:
     branches-ignore:
       - main  # Skip main branch pushes for this workflow
-    paths:
-      - '**.tf'  # Trigger only on changes to .tf files
+    branches:
+      - andreas-pw.7.1  # Run the workflow on the andreas-pw.7.1 branch
 
 jobs:
   test-and-validate:
@@ -44,23 +44,15 @@ jobs:
         id: terraform-tfsec
         uses: aquasecurity/tfsec-action@v1.0.0
         continue-on-error: true  
-      # Step 6: Setup TFLint (for Terraform linting)
-      - name: Setup TFLint
+      # Step 6: Setup and run TFLint
+      - name: Setup and run TFLint
         uses: terraform-linters/setup-tflint@v3
         with:
           tflint_version: latest
-        continue-on-error: true  
-      # Step 7: Display TFLint version
-      - name: TFLint Version
-        run: tflint --version
-        continue-on-error: true  
-      # Step 8: Initialize TFLint plugins
-      - name: TFLint Plugin Init
-        run: tflint --init
+        run: |
+          tflint --version
+          tflint --init
+          tflint
         env:
           GITHUB_TOKEN: ${{ github.token }}
-
-      # Step 9: Run TFLint to check Terraform code quality
-      - name: TFLint Run
-        run: tflint
-        continue-on-error: true
+        continue-on-error: true  

@@ -39,9 +39,7 @@ jobs:
         continue-on-error: true  
       # Step 6: Initialize TFLint plugins
       - name: TFLint Plugin Init
-        run: | 
-          tflint --init
-          tflint
+        run: tflint
         env:
           GITHUB_TOKEN: ${{ github.token }}
       # Step 7: Run tfsec for security scanning

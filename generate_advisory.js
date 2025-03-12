@@ -69,4 +69,8 @@ const checkovSummary = process.argv[4];
 const outputPath = process.argv[5] || 'detailed_advisory.md';
 const output = generateMarkdownReport(trivyReport, checkovReport, checkovSummary);
 fs.writeFileSync(outputPath, output);  // Save as detailed_advisory.md
+<<<<<<< HEAD
 console.log('Advisory report generated successfully.');
+=======
+console.log('Advisory report generated successfully.');
+>>>>>>> 88fd24a4d963be336bb56b09580de553cd8af6c5

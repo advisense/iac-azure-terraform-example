@@ -2,6 +2,8 @@ name: Security Risk Management
 
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -79,26 +81,28 @@ jobs:
           echo "Temporary fixes applied successfully."
 
       # Step 6: Generate a detailed report of the vulnerabilities and the temporary fixes
-      - name: Generate a detailed report of the vulnerabilities and update GitHub issues 
+      - name: Generate a detailed report of the vulnerabilities
         id: generate-advisory 
         run: | 
           echo "Generating detailed report..." && \
-          node generate_advisory.js trivy-report.json checkov-report.json && \
+          node generate_advisory.js trivy-report.json checkov-report.json checkov-summary.md && \
           echo "Detailed report generated:" && \
-          cat detailed_advisory.md && \
-          echo "Checkov Summary:" && \
-          cat checkov-summary.md && \
+          cat detailed_advisory.md
+
+      # Step 7: Create GitHub issue with detailed report
+      - name: Create GitHub issue
+        run: |
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)\n\n$(cat checkov-summary.md)" --label "security"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Bruk den innebygde GITHUB_TOKEN
         
-      # Step 7: Update documentation
+      # Step 8: Update documentation with risk assessment
       - name: Update documentation with risk assessment
         run: |
           echo "Updating documentation..."
           node update_documentation.js risk_report.md detailed_advisory.md checkov-summary.md
 
-      # Step 8: Save the report as an artifact
+      # Step 9: Save the report as an artifact
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:

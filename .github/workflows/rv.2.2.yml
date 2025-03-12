@@ -80,7 +80,7 @@ jobs:
           node implement_workarounds.js risk_report.md
           echo "Temporary fixes applied successfully."
 
-      # Step 6: Generate a detailed report of the vulnerabilities and the temporary fixes
+      # Step 6: Generate a detailed report of the vulnerabilities
       - name: Generate a detailed report of the vulnerabilities
         id: generate-advisory 
         run: | 

@@ -66,7 +66,7 @@ jobs:
         id: generate-advisory 
         run: | 
           echo "Generating detailed report..." && \
-          node generate_detailed_advisory.js trivy-report.json checkov-report.json && \
+          node generate_advisory.js trivy-report.json checkov-report.json && \
           echo "Detailed report generated:" && \
           cat detailed_advisory.md && \
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)" --label "security"

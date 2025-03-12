@@ -26,6 +26,7 @@ jobs:
           wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.60.0_Linux-64bit.tar.gz
           tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
+          # Scan the entire repository starting from the root directory
           trivy fs --scanners vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --pkg-types os,library .
 
       # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
@@ -33,6 +34,7 @@ jobs:
         continue-on-error: true
         run: |
           pip install checkov  # Install Checkov
+          # Scan the entire repository starting from the root directory
           checkov -d . --framework terraform --output json > checkov-report.json  # Scan the entire repository
           cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
 
@@ -94,7 +96,7 @@ jobs:
         run: |
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)\n\n$(cat checkov-summary.md)" --label "security"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Bruk den innebygde GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the built-in GITHUB_TOKEN
         
       # Step 8: Update documentation with risk assessment
       - name: Update documentation with risk assessment
@@ -109,3 +111,7 @@ jobs:
           name: security-risk-report
           path: |
             trivy-report.json
+            checkov-report.json
+            checkov-summary.md
+            risk_report.md
+            detailed_advisory.md

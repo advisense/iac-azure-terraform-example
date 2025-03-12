@@ -25,24 +25,31 @@ jobs:
         with:
           fetch-depth: 0  # Get the entire Git history
 
-      # Step 2: Scan the remote GitHub repository for vulnerabilities
+      
+      # Step 2: Set up Trivy (install Trivy)
+      - name: Set up Trivy
+        uses: aquasecurity/setup-trivy@v0.2.2
+        with:
+         version: 'v0.57.1'  # Set the version you need
+         
+      # Step 3: Scan remote GitHub repository for vulnerabilities
       - name: Scan remote GitHub repository for vulnerabilities
         id: scan-remote-repo
         run: |
-          trivy repo https://github.com/advisense/iac-azure-terraform-example.git --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed false
-       
-      # Step 3: Generate and output the report
+         trivy repo https://github.com/advisense/iac-azure-terraform-example.git --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed false
+      
+      # Step 4: Generate and output the report
       - name: Generate and output the report
         run: |
-          echo "Trivy scan completed. Output:"
-          cat trivy-report.json
-       
-      # Step 4: Save the report as an artifact
+           echo "Trivy scan completed. Output:"
+           cat trivy-report.json
+      
+     # Step 5: Save the report as an artifact
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:
-          name: security-risk-report
-          path: trivy-report.json
+           name: security-risk-report
+           path: trivy-report.json
 
       # Step 5: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov

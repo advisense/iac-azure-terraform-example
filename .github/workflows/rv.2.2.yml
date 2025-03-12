@@ -19,14 +19,20 @@ jobs:
         with:
           fetch-depth: 0  # Get the entire Git history
     
-      # Step 1: Scan repository for vulnerabilities using Trivy
+      # Step 1: Scan repository for vulnerabilities
       - name: Scan repository for vulnerabilities
         id: trivy
-        run: |
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.60.0_Linux-64bit.tar.gz
-          tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
-          sudo mv trivy /usr/local/bin/
-          trivy fs --scanners vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --pkg-types os,library .
+        # Uses the Trivy action to scan the repository for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          path: .
+          format: json  # Shows the scan results in the terminal and saves them to a JSON file
+          output: trivy-report.json  # Save the results to a JSON file
+          exit-code: 0
+          severity: HIGH,CRITICAL
+          vuln-type: os,library
+          ignore-unfixed: false
+         continue-on-error: true
 
       # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov

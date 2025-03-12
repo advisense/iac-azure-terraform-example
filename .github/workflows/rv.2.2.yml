@@ -19,12 +19,6 @@ jobs:
         with:
           fetch-depth: 0  # Get the entire Git history
 
-      # Step 1: Checkout repository
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Get the entire Git history
-
       # Step 2: Set up Trivy (install Trivy)
       - name: Set up Trivy
         uses: aquasecurity/setup-trivy@v0.2.2

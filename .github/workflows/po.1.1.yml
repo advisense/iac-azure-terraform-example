@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - annSophie-po.1.1
   workflow_dispatch: # Allow manual triggering
 
 jobs:
@@ -49,12 +50,21 @@ jobs:
           fi
 
         # Step 7: Install and run Checkov
-      - name: Install and run Checkov
-        run: |
-          pip install checkov
-          checkov -d ./deployments --check Azure --output json > checkov-results.json  # Scan the deployments directory
+      - name: Run Checkov action
+        id: checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          framework: terraform
 
-        # Step 8: Save the results as an artifact
+        # Step 8: Upload results to GitHub Advanced Security
+      - name: Upload SARIF file
+        if: success() || failure()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+          category: checkov
+
+        # Step 9: Save the results as an artifact
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:

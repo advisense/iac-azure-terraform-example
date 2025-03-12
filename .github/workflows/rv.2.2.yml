@@ -19,15 +19,22 @@ jobs:
         with:
           fetch-depth: 0  # Get the entire Git history
 
-      # Step 1: Install Trivy
-      - name: Install Trivy
-        run: |
-          echo "Installing Trivy..."
-          curl -sSL https://github.com/aquasecurity/trivy/releases/download/v0.57.1/trivy_0.57.1_Linux-x86_64.tar.gz | tar xz -C /usr/local/bin
+         # Step 1: Scan repository for vulnerabilities
+      - name: Scan repository for vulnerabilities
+        id: trivy
+         # Uses the Trivy action to scan the repository for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+             format: json  # Shows the scan results in the terminal and saves them to a JSON file
+             output: trivy-report.json  # Save the results to a JSON file
+             exit-code: 0
+             severity: HIGH,CRITICAL
+             vuln-type: os,library
+             ignore-unfixed: false
 
       # Step 2: Scan the remote GitHub repository for vulnerabilities
       - name: Scan remote GitHub repository for vulnerabilities
-        id: trivy
+        id: scan-remote-repo
         run: |
           trivy repo https://github.com/advisense/iac-azure-terraform-example.git --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed false
           

@@ -1,4 +1,4 @@
-name: Security Risk Management
+name: RV.2.2 - Security Risk Management
 
 on:
   push:
@@ -109,7 +109,3 @@ jobs:
           name: security-risk-report
           path: |
             trivy-report.json
-            checkov-report.json
-            risk_report.md
-            detailed_advisory.md
-            checkov-summary.md

@@ -28,7 +28,7 @@ jobs:
       - name: Terraform Format Check
         id: terraform-fmt
         run: terraform fmt -check -recursive
-        continue-on-error: true
+       
 
       # Step 4: Validate Terraform configuration
       - name: Terraform Validate
@@ -39,15 +39,15 @@ jobs:
         uses: terraform-linters/setup-tflint@v3
         with:
           tflint_version: latest
-        continue-on-error: true  
+       
 
       # Step 6: Runs TFLint
       - name: TFLint run
         run: tflint 
-        continue-on-error: true 
+       
 
       # Step 7: Run tfsec for security scanning
       - name: Terraform Security Scan (tfsec)
         id: terraform-tfsec
         uses: aquasecurity/tfsec-action@v1.0.0
-        continue-on-error: true  
+      

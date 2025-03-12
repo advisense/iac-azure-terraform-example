@@ -2,8 +2,6 @@ name: Security Risk Management
 
 on:
   push:
-    branches:
-      - main
   pull_request:
     branches:
       - main

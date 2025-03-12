@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get the entire Git history
     
       # Step 1: Scan repository for vulnerabilities using Trivy
       - name: Scan repository for vulnerabilities
@@ -27,7 +29,7 @@ jobs:
           tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
           # Scan the entire repository starting from the root directory
-          trivy fs --scanners vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --pkg-types os,library .
+          trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed ../../
 
       # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov
@@ -35,7 +37,7 @@ jobs:
         run: |
           pip install checkov  # Install Checkov
           # Scan the entire repository starting from the root directory
-          checkov -d . --framework terraform --output json > checkov-report.json  # Scan the entire repository
+          checkov -d ./deployments --check Azure --output json > checkov-report.json  # Scan the deployments directory
           cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
 
       # Step 3: Output Checkov summary

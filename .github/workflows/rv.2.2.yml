@@ -2,8 +2,6 @@ name: RV.2.2 - Security Risk Management
 
 on:
   push:
-    branches:
-      - main
   pull_request:
     branches:
       - main

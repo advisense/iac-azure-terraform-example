@@ -8,12 +8,12 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
     checkovData = JSON.parse(fs.readFileSync(checkovReportPath, 'utf8'));
   } catch (error) {
     console.error(`Error reading Checkov report: ${error.message}`);
-    checkovData = { results: [] };  // Fallback to empty results
+    checkovData = { results: [], summary: {} };  // Fallback hvis Checkov-rapporten ikke kan leses
   }
 
   let markdown = `# Security Advisory Report\n\n**Report generated at:** ${new Date().toISOString()}\n\n## Risk Summary\n\n`;
 
-  // Include Trivy results
+  // Trivy Results
   markdown += `### Trivy Results\n`;
   trivyData.Results.forEach(result => {
     markdown += `#### Target: ${result.Target}\n`;
@@ -39,7 +39,7 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
     markdown += '\n';
   });
 
-  // Include Checkov results
+  // Checkov Results
   markdown += `### Checkov Results\n`;
   if (checkovData.results && checkovData.results.length > 0) {
     checkovData.results.forEach(result => {
@@ -53,6 +53,13 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
   } else {
     markdown += `No Checkov results found.\n\n`;
   }
+
+  // Add Checkov Summary
+  markdown += `### Checkov Summary\n`;
+  markdown += `- **Passed checks:** ${checkovData.summary?.passed || 0}\n`;
+  markdown += `- **Failed checks:** ${checkovData.summary?.failed || 0}\n`;
+  markdown += `- **Skipped checks:** ${checkovData.summary?.skipped || 0}\n`;
+  markdown += `- **Parsing errors:** ${checkovData.summary?.parsing_errors || 0}\n`;
 
   markdown += `## Recommended Actions\n- Update vulnerable dependencies.\n- Apply available patches or workarounds.\n`;
 

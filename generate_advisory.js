@@ -61,6 +61,7 @@ function generateMarkdownReport(trivyReport, checkovReport) {
 
 const trivyReport = process.argv[2];
 const checkovReport = process.argv[3];
+const outputPath = process.argv[4] || 'detailed_advisory.md';
 const output = generateMarkdownReport(trivyReport, checkovReport);
-fs.writeFileSync('detailed_advisory.md', output);  // Save as detailed_advisory.md
+fs.writeFileSync(outputPath, output);  // Save as detailed_advisory.md
 console.log('Advisory report generated successfully.');

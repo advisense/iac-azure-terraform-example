@@ -23,6 +23,7 @@ jobs:
       - name: Scan repository for vulnerabilities
         id: trivy
         run: |
+          # Download Trivy
           wget https://github.com/aquasecurity/trivy/releases/download/v0.60.0/trivy_0.60.0_Linux-64bit.tar.gz
           tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
@@ -31,14 +32,21 @@ jobs:
           git submodule update --init --recursive
           
           # Naviger til rotmappen
-          cd ../.. 
-          pwd  # Debugging
-          ls -la  # Debugging
+          cd ../..
+          pwd  # Debugging: bekreft at du er i riktig katalog
+          ls -la  # Debugging: liste filer i nåværende katalog
           
-          # Kjør Trivy skanning med de riktige flaggene
+          # Kjør Trivy skanning og legg til debug-utdata
           trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
-
-          ls -la  # Debugging for å sjekke om rapporten ble laget
+          
+          # Bekreft at filen ble opprettet etter Trivy-kjøring
+          ls -la  # Debugging: sjekk om trivy-report.json eksisterer
+          if [ ! -f trivy-report.json ]; then
+            echo "❌ trivy-report.json ble ikke funnet!"
+            exit 1
+          else
+            echo "✅ trivy-report.json funnet!"
+          fi
 
       # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov
@@ -72,12 +80,14 @@ jobs:
       - name: Rate the severity of the vulnerabilities and prioritize them
         id: evaluate-vulnerabilities
         run: | 
-          if [ ! -f trivy-report.json ]; then
-            echo "trivy-report.json not found!"
+          # Bruk full sti for trivy-report.json
+          REPORT_PATH=$(pwd)/trivy-report.json
+          if [ ! -f "$REPORT_PATH" ]; then
+            echo "❌ $REPORT_PATH ble ikke funnet!"
             exit 1
           fi
           echo "Rating and prioritizing vulnerabilities..."
-          node evaluate_risk.js trivy-report.json > risk_report.md
+          node evaluate_risk.js "$REPORT_PATH" > risk_report.md
 
       # Step 5: If there is no permanent fix, create a temporary fix
       - name: Create a temporary fix
@@ -98,7 +108,7 @@ jobs:
         id: generate-advisory 
         run: | 
           echo "Generating detailed report..." && \
-          node generate_advisory.js trivy-report.json checkov-report.json checkov-summary.md && \
+          node generate_advisory.js "$REPORT_PATH" checkov-report.json checkov-summary.md && \
           echo "Detailed report generated:" && \
           cat detailed_advisory.md
 

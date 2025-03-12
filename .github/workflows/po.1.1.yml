@@ -56,20 +56,20 @@ jobs:
         with:
           framework: terraform
 
-        # Step 8: Upload results to GitHub Advanced Security
+      # Step 8: Ensure checkov results file exists
+      - name: Ensure Checkov results file exists
+        run: |
+          if [ ! -f results.sarif ]; then
+          touch results.sarif
+          fi
+
+        # Step 9: Upload results to GitHub Advanced Security
       - name: Upload SARIF file
         if: success() || failure()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: checkov.sarif
+          sarif_file: results.sarif
           category: checkov
-
-        # Step 9: Ensure checkov results file exists
-      - name: Ensure Checkov results file exists
-        run: |
-          if [ ! -f checkov.sarif ]; then
-          touch checkov.sarif
-          fi
 
         # Step 10: Save the results as an artifact
       - name: Upload results
@@ -78,5 +78,5 @@ jobs:
           name: security-results
           path: |
             trivy-results.json
-             checkov.sarif
+            results.sarif
           #  codeq-results.json

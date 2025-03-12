@@ -1,7 +1,9 @@
-name: rv.2.2
+name: rv.2.2_Security Risk Management for Terraform
 
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -57,27 +59,19 @@ jobs:
             exit 1
           fi
 
-      # Step 7: Ensure Checkov summary exists
-      - name: Ensure Checkov summary exists
-        run: |
-          if [ ! -f checkov-summary.txt ]; then
-            echo "Error: checkov-summary.txt was not generated!"
-            exit 1
-          fi
-
-      # Step 8: Generate the advisory report
+      # Step 7: Generate the advisory report
       - name: Generate a report of vulnerabilities and update GitHub issues
         id: generate-advisory
         run: |
           echo "Generating advisory report..." && \
-          node generate_advisory.js trivy-report.json checkov-report.json checkov-summary.txt && \
+          node generate_advisory.js trivy-report.json checkov-report.json && \
           echo "Report generated:" && \
           cat detailed_advisory.md && \
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)" --label "security"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the built-in GITHUB_TOKEN for authentication
 
-      # Step 9: Save the final reports as artifacts
+      # Step 8: Save the final reports as artifacts
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:
@@ -85,5 +79,4 @@ jobs:
           path: |
             trivy-report.json
             checkov-report.json
-            checkov-summary.txt
             detailed_advisory.md

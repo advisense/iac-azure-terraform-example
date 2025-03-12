@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-function generateMarkdownReport(trivyReportPath, checkovReportPath, checkovSummaryPath) {
+function generateMarkdownReport(trivyReportPath, checkovReportPath) {
   const trivyData = JSON.parse(fs.readFileSync(trivyReportPath, 'utf8'));
   let checkovData;
 
@@ -54,10 +54,6 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath, checkovSumma
     markdown += `No Checkov results found.\n\n`;
   }
 
-  // Include Checkov summary
-  markdown += `### Checkov Summary\n`;
-  markdown += fs.readFileSync(checkovSummaryPath, 'utf8');
-
   markdown += `## Recommended Actions\n- Update vulnerable dependencies.\n- Apply available patches or workarounds.\n`;
 
   return markdown;
@@ -65,15 +61,14 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath, checkovSumma
 
 const trivyReportPath = process.argv[2];
 const checkovReportPath = process.argv[3];
-const checkovSummaryPath = process.argv[4];
-const outputPath = process.argv[5] || 'detailed_advisory.md';
+const outputPath = process.argv[4] || 'detailed_advisory.md';
 
 // Validate arguments
-if (!trivyReportPath || !checkovReportPath || !checkovSummaryPath) {
+if (!trivyReportPath || !checkovReportPath) {
   console.error('Error: Missing required arguments.');
   process.exit(1);
 }
 
-const output = generateMarkdownReport(trivyReportPath, checkovReportPath, checkovSummaryPath);
+const output = generateMarkdownReport(trivyReportPath, checkovReportPath);
 fs.writeFileSync(outputPath, output);  // Save as detailed_advisory.md
 console.log('Advisory report generated successfully.');

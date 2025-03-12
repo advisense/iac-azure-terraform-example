@@ -26,12 +26,19 @@ jobs:
           wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.60.0_Linux-64bit.tar.gz
           tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
-          # Navigate to the root directory and scan the entire repository including nested modules
-          cd ../..  # Adjust path to root
-          pwd  # Print working directory for debugging
-          ls -la  # List files for debugging
+          
+          # Initialiser og oppdater submoduler
+          git submodule update --init --recursive
+      
+          # Naviger til rotmappen
+          cd ../..
+          pwd  # Debugging
+          ls -la  # Debugging
+      
+          # Kjør Trivy skanning
           trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
-          ls -la  # List files to verify trivy-report.json is created
+      
+          ls -la  # Debugging for å sjekke om rapporten ble laget
 
       # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov

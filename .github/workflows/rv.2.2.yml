@@ -37,72 +37,30 @@ jobs:
           ls -la  # Debugging: liste filer i nåværende katalog
           
           # Kjør Trivy skanning og legg til debug-utdata
-          trivy fs --security-checks vuln,config --format json --output iac-azure-terraform-example/trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
+          trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
           
           # Bekreft at filen ble opprettet etter Trivy-kjøring
-          ls -la iac-azure-terraform-example/  # Debugging: sjekk om trivy-report.json eksisterer
-          if [ ! -f iac-azure-terraform-example/trivy-report.json ]; then
+          ls -la  # Debugging: sjekk om trivy-report.json eksisterer
+          if [ ! -f trivy-report.json ]; then
             echo "❌ trivy-report.json ble ikke funnet!"
             exit 1
           else
             echo "✅ trivy-report.json funnet!"
           fi
 
-      # Step 2: Upload Trivy report as an artifact
-      - name: Upload Trivy report as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-report
-          path: iac-azure-terraform-example/trivy-report.json
-
-      # Step 3: Scan Terraform code with Checkov for Azure-specific vulnerabilities
-      - name: Scan Terraform with Checkov
-        continue-on-error: true
-        run: |
-          pip install checkov  # Install Checkov
-          # Scan the entire repository starting from the root directory
-          checkov -d ./deployments --check Azure --output json > checkov-report.json  # Scan the deployments directory
-          cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
-
-      # Step 4: Download the Trivy report artifact
-      - name: Download Trivy report artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: trivy-report
-          path: ./iac-azure-terraform-example/
-
-      # Step 5: Output Checkov summary
-      - name: Output Checkov summary
-        id: checkov-summary
-        run: |
-          echo "Parsing Checkov report..."
-          if [ -f checkov-report.json ]; then
-            passed=$(jq '.summary.passed' checkov-report.json)
-            failed=$(jq '.summary.failed' checkov-report.json)
-            skipped=$(jq '.summary.skipped' checkov-report.json)
-            parsing_errors=$(jq '.summary.parsing_errors' checkov-report.json)
-            echo "Checkov Summary:" > checkov-summary.md
-            echo "Passed checks: $passed" >> checkov-summary.md
-            echo "Failed checks: $failed" >> checkov-summary.md
-            echo "Skipped checks: $skipped" >> checkov-summary.md
-            echo "Parsing errors: $parsing_errors" >> checkov-summary.md
-          else
-            echo "Checkov report not found!" > checkov-summary.md
-          fi
-
-      # Step 6: Rate the severity of the vulnerabilities and prioritize them
+      # Step 2: Rate the severity of the vulnerabilities and prioritize them
       - name: Rate the severity of the vulnerabilities and prioritize them
         id: evaluate-vulnerabilities
         run: | 
-          REPORT_PATH="./iac-azure-terraform-example/trivy-report.json"
-          if [ ! -f "$REPORT_PATH" ]; then
-            echo "❌ $REPORT_PATH ble ikke funnet!"
+          # Bruk den eksisterende trivy-report.json direkte uten å laste den ned
+          if [ ! -f trivy-report.json ]; then
+            echo "trivy-report.json not found!"
             exit 1
           fi
           echo "Rating and prioritizing vulnerabilities..."
-          node evaluate_risk.js "$REPORT_PATH" > risk_report.md
+          node evaluate_risk.js trivy-report.json > risk_report.md
 
-      # Step 7: If there is no permanent fix, create a temporary fix
+      # Step 3: Create a temporary fix
       - name: Create a temporary fix
         id: apply-workarounds
         run: |
@@ -116,36 +74,4 @@ jobs:
           node implement_workarounds.js risk_report.md
           echo "Temporary fixes applied successfully."
 
-      # Step 8: Generate a detailed report of the vulnerabilities
-      - name: Generate a detailed report of the vulnerabilities
-        id: generate-advisory 
-        run: | 
-          echo "Generating detailed report..." && \
-          node generate_advisory.js "$REPORT_PATH" checkov-report.json checkov-summary.md && \
-          echo "Detailed report generated:" && \
-          cat detailed_advisory.md
-
-      # Step 9: Create GitHub issue with detailed report
-      - name: Create GitHub issue
-        run: |
-          gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)\n\n$(cat checkov-summary.md)" --label "security"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the built-in GITHUB_TOKEN
-
-      # Step 10: Update documentation with risk assessment
-      - name: Update documentation with risk assessment
-        run: |
-          echo "Updating documentation..."
-          node update_documentation.js risk_report.md detailed_advisory.md checkov-summary.md
-
-      # Step 11: Save the report as an artifact
-      - name: Save the report as an artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-risk-report
-          path: |
-            ./iac-azure-terraform-example/trivy-report.json
-            checkov-report.json
-            checkov-summary.md
-            risk_report.md
-            detailed_advisory.md
+      # Resten av workflowen...

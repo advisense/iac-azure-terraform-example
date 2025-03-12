@@ -57,7 +57,13 @@ jobs:
             exit 1
           fi
 
-      # Step 7: Generate the advisory report
+      # Step 7: Debug output for Checkov report (for troubleshooting)
+      - name: Debug Checkov report
+        run: |
+          echo "Checkov Report Content:" && \
+          cat checkov-report.json || echo "Checkov report is empty or not generated!"
+
+      # Step 8: Generate the advisory report
       - name: Generate a report of vulnerabilities and update GitHub issues
         id: generate-advisory
         run: |
@@ -69,7 +75,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the built-in GITHUB_TOKEN for authentication
 
-      # Step 8: Save the final reports as artifacts
+      # Step 9: Save the final reports as artifacts
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:

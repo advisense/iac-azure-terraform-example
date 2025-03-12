@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-      - annSophie-po.1.1  # For testing
   workflow_dispatch: # Allow manual triggering
 
 jobs:
@@ -42,7 +41,7 @@ jobs:
         with:
           output: codeql-builtin-results.json
 
-      # Step 6: Ensure CodeQL results file exists
+        # Step 6: Ensure CodeQL results file exists
       - name: Ensure CodeQL results file exists
         run: |
           if [ ! -f codeql-results.json ]; then
@@ -55,7 +54,7 @@ jobs:
           pip install checkov
           checkov -d ./deployments --check Azure --output json > checkov-results.json  # Scan the deployments directory
 
-          # Step 7: Save the results as an artifact
+        # Step 8: Save the results as an artifact
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:

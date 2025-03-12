@@ -6,8 +6,8 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 0 * * 1' # Run every Monday at 00:00
-  workflow_dispatch: # Allow manual triggering of the workflow
+    - cron: '0 0 * * 1'  # Run every Monday at 00:00
+  workflow_dispatch:  # Allow manual triggering of the workflow
 
 jobs: 
   security-risk-management:
@@ -25,15 +25,13 @@ jobs:
         # Uses the Trivy action to scan the repository for vulnerabilities
         uses: aquasecurity/trivy-action@master
         with:
-          path: .
-          format: json  # Shows the scan results in the terminal and saves them to a JSON file
-          output: trivy-report.json  # Save the results to a JSON file
-          exit-code: 0
-          severity: HIGH,CRITICAL
-          vuln-type: os,library
-          ignore-unfixed: false
-         continue-on-error: true
-
+            format: json  # Shows the scan results in the terminal and saves them to a JSON file
+            output: trivy-report.json  # Save the results to a JSON file
+            exit-code: 0
+            severity: HIGH,CRITICAL
+            vuln-type: os,library
+            ignore-unfixed: false
+      
       # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov
         continue-on-error: true
@@ -41,6 +39,7 @@ jobs:
           pip install checkov  # Install Checkov
           checkov -d . --framework terraform --output json > checkov-report.json  # Scan the entire repository
           cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
+
       # Step 3: Output Checkov summary
       - name: Output Checkov summary
         id: checkov-summary
@@ -58,8 +57,20 @@ jobs:
             echo "Parsing errors: $parsing_errors" >> checkov-summary.md
           else
             echo "Checkov report not found!" > checkov-summary.md
-          fi
-      # Step 4: Rate the severity of the vulnerabilities and prioritize them
+          
+      # Step 4: Scan the remote GitHub repository for vulnerabilities using Trivy repo
+      - name: Scan the remote GitHub repository for vulnerabilities (Trivy repo)
+        id: trivy-repo
+        run: |
+          trivy repo https://github.com/advisense/iac-azure-terraform-example.git --format json --output trivy-repo-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed false
+
+      # Step 5: Scan the remote GitHub repository for IaC vulnerabilities using Trivy config
+      - name: Scan the remote GitHub repository for IaC vulnerabilities (Trivy config)
+        id: trivy-config
+        run: |
+          trivy config https://github.com/advisense/iac-azure-terraform-example.git --format json --output trivy-config-report.json --severity HIGH,CRITICAL --ignore-unfixed false
+
+      # Step 6: Rate the severity of the vulnerabilities and prioritize them
       - name: Rate the severity of the vulnerabilities and prioritize them
         id: evaluate-vulnerabilities
         run: | 
@@ -69,8 +80,8 @@ jobs:
           fi
           echo "Rating and prioritizing vulnerabilities..."
           node evaluate_risk.js trivy-report.json > risk_report.md
-        
-      # Step 5: If there is no permanent fix, create a temporary fix
+
+      # Step 7: If there is no permanent fix, create a temporary fix
       - name: Create a temporary fix
         id: apply-workarounds
         run: |
@@ -83,7 +94,8 @@ jobs:
           echo "Creating temporary fixes..."
           node implement_workarounds.js risk_report.md
           echo "Temporary fixes applied successfully."
-      # Step 6: Generate a detailed report of the vulnerabilities and the temporary fixes
+
+      # Step 8: Generate a detailed report of the vulnerabilities and update GitHub issues
       - name: Generate a detailed report of the vulnerabilities and update GitHub issues 
         id: generate-advisory 
         run: | 
@@ -95,14 +107,15 @@ jobs:
           cat checkov-summary.md && \
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)\n\n$(cat checkov-summary.md)" --label "security"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Bruk den innebygde GITHUB_TOKEN
-        
-      # Step 7: Update documentation
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the built-in GITHUB_TOKEN
+
+      # Step 9: Update documentation with risk assessment
       - name: Update documentation with risk assessment
         run: |
           echo "Updating documentation..."
           node update_documentation.js risk_report.md detailed_advisory.md checkov-summary.md
-      # Step 8: Save the report as an artifact
+
+      # Step 10: Save the reports as an artifact
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:
@@ -110,6 +123,8 @@ jobs:
           path: |
             trivy-report.json
             checkov-report.json
+            trivy-repo-report.json
+            trivy-config-report.json
             risk_report.md
             detailed_advisory.md
             checkov-summary.md

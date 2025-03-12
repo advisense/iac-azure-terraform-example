@@ -4,6 +4,8 @@ on:
   push:
     branches-ignore:
       - main      #Ignores main branch as this branch requires manual review.
+    paths:
+      - '**/*.tf'
 
 jobs:
   test-and-validate:

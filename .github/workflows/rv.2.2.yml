@@ -53,19 +53,43 @@ jobs:
             exit 1
           fi
 
-      # Steg 7: Generer en sårbarhetsrapport og oppdater GitHub Issues
+      # Steg 7: Sørg for at JSON-filene eksisterer og inneholder data
+      - name: Verify Trivy and Checkov reports exist
+        run: |
+          if [ ! -s trivy-report.json ]; then
+            echo "Error: trivy-report.json is missing or empty!"
+            exit 1
+          fi
+          if [ ! -s checkov-report.json ]; then
+            echo "Error: checkov-report.json is missing or empty!"
+            exit 1
+          fi
+
+      # Steg 8: Debug advisory script
+      - name: Debug advisory script
+        run: |
+          echo "Running advisory script..."
+          node generate_advisory.js trivy-report.json checkov-report.json || echo "Advisory script failed!"
+
+      # Steg 9: Sørg for at `generate_advisory.js` får riktige argumenter
+      - name: Ensure correct arguments for advisory script
+        run: |
+          echo "Running advisory script with correct arguments..."
+          node generate_advisory.js trivy-report.json checkov-report.json advisory.md
+
+      # Steg 10: Generer en sårbarhetsrapport og oppdater GitHub Issues
       - name: Generate a report of vulnerabilities and update GitHub issues
         id: generate-advisory
         run: |
           echo "Generating advisory report..." && \
-          node generate_advisory.js trivy-report.json checkov-report.json && \
+          node generate_advisory.js trivy-report.json checkov-report.json advisory.md && \
           echo "Report generated:" && \
           cat advisory.md && \
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat advisory.md)" --label "security"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Steg 8: Evaluer risiko basert på Trivy-rapport
+      # Steg 11: Evaluer risiko basert på Trivy-rapport
       - name: Evaluate risk based on Trivy report
         run: |
           echo "Evaluating risk..." && \
@@ -73,13 +97,13 @@ jobs:
           echo "Risk report generated:" && \
           cat risk_report.md
       
-      # Steg 9: Oppdater dokumentasjon med risikovurderinger
+      # Steg 12: Oppdater dokumentasjon med risikovurderinger
       - name: Update documentation with risk assessment
         run: |
           echo "Updating documentation..."
           node update_documentation.js trivy-report.json advisory.md
 
-      # Steg 10: Lagre sikkerhetsrapport som en artifakt
+      # Steg 13: Lagre sikkerhetsrapport som en artifakt
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:

@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-function generateMarkdownReport(trivyReport, checkovReport) {
+function generateMarkdownReport(trivyReport, checkovReport, checkovSummary) {
   const trivyData = JSON.parse(fs.readFileSync(trivyReport, 'utf8'));
   let checkovData;
 
@@ -54,6 +54,10 @@ function generateMarkdownReport(trivyReport, checkovReport) {
     markdown += `No Checkov results found.\n\n`;
   }
 
+  // Include Checkov summary
+  markdown += `### Checkov Summary\n`;
+  markdown += fs.readFileSync(checkovSummary, 'utf8');
+
   markdown += `## Recommended Actions\n- Update vulnerable dependencies.\n- Apply available patches or workarounds.\n`;
 
   return markdown;
@@ -61,6 +65,8 @@ function generateMarkdownReport(trivyReport, checkovReport) {
 
 const trivyReport = process.argv[2];
 const checkovReport = process.argv[3];
-const output = generateMarkdownReport(trivyReport, checkovReport);
-fs.writeFileSync('detailed_advisory.md', output);  // Save as detailed_advisory.md
+const checkovSummary = process.argv[4];
+const outputPath = process.argv[5] || 'detailed_advisory.md';
+const output = generateMarkdownReport(trivyReport, checkovReport, checkovSummary);
+fs.writeFileSync(outputPath, output);  // Save as detailed_advisory.md
 console.log('Advisory report generated successfully.');

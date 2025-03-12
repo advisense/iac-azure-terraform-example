@@ -20,9 +20,9 @@ jobs:
         # Step 2: Install the latest version of trivy
       - name: Installing trivy
         run: |
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.60.0_Linux-64bit.tar.gz
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.60.0/trivy_0.60.0_Linux-64bit.tar.gz
           tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
-          sudo mv trivy /usr/local/bin/
+          sudo mv trivy /usr/local/bin
 
         # Step 3: Scan the entire project for vulnerabilitiues using trivy
       - name: Scan repository for vulnerabilities (entire project)

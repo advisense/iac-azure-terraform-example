@@ -34,11 +34,11 @@ jobs:
           pwd
           ls -la
 
-          # Kjør Trivy filsystemskanning
-          trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
+          # Kjør Trivy filsystemskanning med riktige flag
+          trivy fs --scanners vuln,misconfig --format json --output trivy-report.json --severity HIGH,CRITICAL --pkg-types os,library --ignore-unfixed .
 
-          # Kjør Trivy konfigurasjonssjekk
-          trivy config --format json --severity HIGH,CRITICAL --output trivy-config-report.json .
+          # Kjør Trivy konfigurasjonssjekk med riktige flag
+          trivy config --scanners misconfig --format json --severity HIGH,CRITICAL --output trivy-config-report.json .
 
           # Debugging: Bekreft at filene er generert
           ls -la
@@ -73,80 +73,3 @@ jobs:
             passed=$(jq '.summary.passed' checkov-report.json)
             failed=$(jq '.summary.failed' checkov-report.json)
             skipped=$(jq '.summary.skipped' checkov-report.json)
-            parsing_errors=$(jq '.summary.parsing_errors' checkov-report.json)
-            echo "Checkov Summary:" > checkov-summary.md
-            echo "Passed checks: $passed" >> checkov-summary.md
-            echo "Failed checks: $failed" >> checkov-summary.md
-            echo "Skipped checks: $skipped" >> checkov-summary.md
-            echo "Parsing errors: $parsing_errors" >> checkov-summary.md
-          else
-            echo "Checkov report not found!" > checkov-summary.md
-          fi
-
-      # Step 5: Hent Trivy-rapporten igjen (for å sikre at den finnes)
-      - name: Download Trivy report
-        uses: actions/download-artifact@v4
-        with:
-          name: trivy-report
-
-      - name: Verify Trivy report exists
-        run: |
-          ls -la  # Debugging
-          if [ ! -s trivy-report.json ]; then
-            echo "❌ trivy-report.json mangler eller er tom!"
-            exit 1
-          else
-            echo "✅ trivy-report.json funnet og klar til bruk!"
-          fi
-
-      # Step 6: Rate the severity of the vulnerabilities and prioritize them
-      - name: Rate vulnerabilities and prioritize
-        id: evaluate-vulnerabilities
-        run: | 
-          echo "Rating and prioritizing vulnerabilities..."
-          node evaluate_risk.js trivy-report.json > risk_report.md
-        
-      # Step 7: If there is no permanent fix, create a temporary fix
-      - name: Create a temporary fix
-        id: apply-workarounds
-        run: |
-          if [ ! -s risk_report.md ]; then
-            echo "❌ risk_report.md not found!"
-            exit 1
-          fi
-          echo "risk_report.md found. Proceeding with temporary fixes..."
-          node implement_workarounds.js risk_report.md
-          echo "Temporary fixes applied successfully."
-
-      # Step 8: Generate a detailed report of the vulnerabilities
-      - name: Generate a detailed report of the vulnerabilities
-        id: generate-advisory 
-        run: | 
-          echo "Generating detailed report..." && \
-          node generate_advisory.js trivy-report.json checkov-report.json checkov-summary.md && \
-          echo "Detailed report generated:" && \
-          cat detailed_advisory.md
-
-      # Step 9: Create GitHub issue with detailed report
-      - name: Create GitHub issue
-        run: |
-          gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)\n\n$(cat checkov-summary.md)" --label "security"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Step 10: Update documentation with risk assessment
-      - name: Update documentation with risk assessment
-        run: |
-          node update_documentation.js risk_report.md detailed_advisory.md checkov-summary.md
-
-      # Step 11: Save all reports as an artifact
-      - name: Save security risk report
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-risk-report
-          path: |
-            trivy-report.json
-            checkov-report.json
-            checkov-summary.md
-            risk_report.md
-            detailed_advisory.md

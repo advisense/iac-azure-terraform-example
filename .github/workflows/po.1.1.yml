@@ -28,13 +28,13 @@ jobs:
       - name: Scan repository for vulnerabilities (entire project)
         id: trivy
         run: |
-         trivy fs --security-checks vuln,config --format json --output trivy-result.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed ../../
+         trivy fs --security-checks vuln,config --format json --output trivy-results.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed ../../
 
        # Step 4: Ensure the Trivy report exists
       - name: Ensure Trivy report exists
-        run:
-         if [ ! -f results.sarif ]; then
-         touch results.sarif
+        run: |
+         if [ ! -f trivy-results.json ]; then
+         touch trivy-results.json
          fi
 
 

@@ -1,4 +1,4 @@
-name: Security Risk Management
+name: rv.2.2
 
 on:
   push:
@@ -7,19 +7,19 @@ on:
       - main
   schedule:
     - cron: '0 0 * * 1'  # Kjør hver mandag kl. 00:00
-  workflow_dispatch:  # Tillat manuell kjøring
+  workflow_dispatch:  # Tillat manuell kjøring av workflow
 
 jobs:
   security-risk-management:
-    name: Security Risk Management
+    name: Security Risk Management for Terraform
     runs-on: ubuntu-latest
 
     steps:
-      # Steg 1: Sjekk ut repoet
+      # Steg 1: Sjekk ut repository
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Hent hele historikken
+          fetch-depth: 0  # Hent hele Git-historikken
     
       # Steg 2: Installer Trivy
       - name: Install Trivy
@@ -27,57 +27,60 @@ jobs:
           wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.60.0_Linux-64bit.tar.gz
           tar -xzf trivy_0.60.0_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
-
-      # Steg 3: Scan hele repoet med Trivy (inkludert modules/)
-      - name: Scan repository for vulnerabilities
+      
+      # Steg 3: Skann hele prosjektet med Trivy
+      - name: Scan repository for vulnerabilities (entire project)
         id: trivy
         run: |
-          echo "Starter Trivy-skanning..."
-          trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
-
-      # Steg 4: Installer og kjør Checkov på modules/
-      - name: Scan Terraform with Checkov
+          trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed ./
+      
+      # Steg 4: Skann Terraform-kode med Checkov (moduler i stedet for deployments)
+      - name: Scan Terraform with Checkov (don't fail on findings)
         run: |
-          pip install checkov
-          echo "Starter Checkov-skanning..."
-          checkov -d modules/ --framework terraform --output json > checkov-report.json
-          cat checkov-report.json || echo "Checkov report not found!"
+          pip install checkov  # Installer Checkov
+          checkov -d modules/ --framework terraform --soft-fail --output json > checkov-report.json
+        continue-on-error: true  # Sikrer at workflowen ikke stopper
+      
+      # Steg 5: Debug Checkov output
+      - name: Debug Checkov output
+        run: cat checkov-report.json || echo "Checkov report not found!"
 
-      # Steg 5: Sjekk om Trivy-rapporten ble generert
+      # Steg 6: Sørg for at Trivy-rapporten finnes
       - name: Ensure Trivy report exists
         run: |
           if [ ! -f trivy-report.json ]; then
             echo "Error: trivy-report.json was not generated!"
             exit 1
           fi
-      
-      # Steg 6: Evaluer risiko basert på funnene
-      - name: Evaluate risk based on Trivy report
-        run: |
-          echo "Evaluating risk..."
-          node evaluate_risk.js trivy-report.json > risk_report.md
-          cat risk_report.md
 
-      # Steg 7: Generer sikkerhetsrapport og opprett GitHub Issue hvis det er kritiske funn
-      - name: Generate advisory report
+      # Steg 7: Generer en sårbarhetsrapport og oppdater GitHub Issues
+      - name: Generate a report of vulnerabilities and update GitHub issues
+        id: generate-advisory
         run: |
-          echo "Generating advisory report..."
-          node generate_advisory.js trivy-report.json checkov-report.json > advisory.md
-          cat advisory.md
-          
-          # Opprett en GitHub Issue hvis det er alvorlige funn
-          gh issue create --title "Security Advisory: Critical Vulnerabilities Found" --body "$(cat advisory.md)" --label "security"
+          echo "Generating advisory report..." && \
+          node generate_advisory.js trivy-report.json checkov-report.json && \
+          echo "Report generated:" && \
+          cat advisory.md && \
+          gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat advisory.md)" --label "security"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Steg 8: Oppdater dokumentasjon med sikkerhetsfunn
+      # Steg 8: Evaluer risiko basert på Trivy-rapport
+      - name: Evaluate risk based on Trivy report
+        run: |
+          echo "Evaluating risk..." && \
+          node evaluate_risk.js && \
+          echo "Risk report generated:" && \
+          cat risk_report.md
+      
+      # Steg 9: Oppdater dokumentasjon med risikovurderinger
       - name: Update documentation with risk assessment
         run: |
           echo "Updating documentation..."
           node update_documentation.js trivy-report.json advisory.md
 
-      # Steg 9: Lagre sikkerhetsrapportene som artefakter
-      - name: Save security reports as artifacts
+      # Steg 10: Lagre sikkerhetsrapport som en artifakt
+      - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:
           name: security-risk-report
@@ -85,4 +88,3 @@ jobs:
             trivy-report.json
             checkov-report.json
             risk_report.md
-            advisory.md

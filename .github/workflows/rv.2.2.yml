@@ -65,24 +65,24 @@ jobs:
             exit 1
           fi
 
-      # Steg 8: Debug advisory script
-      - name: Debug advisory script
+      # Steg 8: Generer Checkov-sammendrag
+      - name: Generate Checkov summary
         run: |
-          echo "Running advisory script..."
-          node generate_advisory.js trivy-report.json checkov-report.json || echo "Advisory script failed!"
+          cat checkov-report.json | jq '[.results[] | {check_id, severity, description, file_path}]' > checkov-summary.json
+        continue-on-error: true  # Sikrer at dette ikke stopper workflowen om det er tomt
 
       # Steg 9: Sørg for at `generate_advisory.js` får riktige argumenter
       - name: Ensure correct arguments for advisory script
         run: |
           echo "Running advisory script with correct arguments..."
-          node generate_advisory.js trivy-report.json checkov-report.json advisory.md
+          node generate_advisory.js trivy-report.json checkov-report.json checkov-summary.json advisory.md
 
       # Steg 10: Generer en sårbarhetsrapport og oppdater GitHub Issues
       - name: Generate a report of vulnerabilities and update GitHub issues
         id: generate-advisory
         run: |
           echo "Generating advisory report..." && \
-          node generate_advisory.js trivy-report.json checkov-report.json advisory.md && \
+          node generate_advisory.js trivy-report.json checkov-report.json checkov-summary.json advisory.md && \
           echo "Report generated:" && \
           cat advisory.md && \
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat advisory.md)" --label "security"

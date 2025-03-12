@@ -22,9 +22,11 @@ jobs:
       # Step 1: Install the latest version of Trivy
       - name: Install the latest version of Trivy
         run: |
-          # Fetch the latest Trivy release version and install it
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | jq -r .tag_name)_Linux-64bit.tar.gz
-          tar -xzf trivy_*.tar.gz
+          # Get the latest Trivy release version from GitHub API
+          TRIVY_VERSION=$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | jq -r .tag_name)
+          # Download and install Trivy
+          wget https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
+          tar -xzf trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
           sudo mv trivy /usr/local/bin/
 
       # Step 2: Scan repository for vulnerabilities using Trivy

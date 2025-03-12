@@ -5,3 +5,4 @@ resource "azurerm_firewall_policy" "az-firewall-pol01" {
   sku                 = var.sku
 }
 
+ 

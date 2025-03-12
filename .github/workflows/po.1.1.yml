@@ -78,5 +78,5 @@ jobs:
           name: security-results
           path: |
             trivy-results.json
-            codeql-builtin-results.json
-            checkov-results.json
+            codeq-results.json
+            checkov.sarif

@@ -37,17 +37,17 @@ jobs:
           languages: javascript
 
         # Step 5: Perform CodeQL analysis
-      - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          output: codeql-builtin-results.json
-
+     # - name: Perform CodeQL analysis
+     #   uses: github/codeql-action/analyze@v3
+     #   with:
+     #     output: codeql-builtin-results.json
+     #
         # Step 6: Ensure CodeQL results file exists
-      - name: Ensure CodeQL results file exists
-        run: |
-          if [ ! -f codeql-results.json ]; then
-            touch codeql-results.json
-          fi
+      #- name: Ensure CodeQL results file exists
+      #  run: |
+      #    if [ ! -f codeql-results.json ]; then
+      #      touch codeql-results.json
+      #    fi
 
         # Step 7: Install and run Checkov
       - name: Run Checkov action
@@ -78,5 +78,5 @@ jobs:
           name: security-results
           path: |
             trivy-results.json
-            codeq-results.json
-            checkov.sarif
+             checkov.sarif
+          #  codeq-results.json

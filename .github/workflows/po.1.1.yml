@@ -61,10 +61,17 @@ jobs:
         if: success() || failure()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: results.sarif
+          sarif_file: checkov.sarif
           category: checkov
 
-        # Step 9: Save the results as an artifact
+        # Step 9: Ensure checkov results file exists
+      - name: Ensure Checkov results file exists
+        run: |
+          if [ ! -f checkov.sarif ]; then
+          touch checkov.sarif
+          fi
+
+        # Step 10: Save the results as an artifact
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:

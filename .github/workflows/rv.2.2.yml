@@ -14,7 +14,7 @@ jobs:
     name: Security Risk Management
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Get the entire Git history
@@ -30,31 +30,41 @@ jobs:
           # Initialiser og oppdater submoduler
           git submodule update --init --recursive
 
-          # Naviger til rotmappen
-          cd ../..
-          pwd  # Debugging
-          ls -la  # Debugging
+          # Debugging: Sjekk nåværende katalog
+          pwd
+          ls -la
 
-          # Kjør Trivy filsystemskanning for pakker, konfigurasjoner og avhengigheter
+          # Kjør Trivy filsystemskanning
           trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
 
-          # Kjør spesifikk Terraform/IaC-sjekk
+          # Kjør Trivy konfigurasjonssjekk
           trivy config --format json --severity HIGH,CRITICAL --output trivy-config-report.json .
 
-          ls -la  # Debugging for å sjekke om rapportene ble laget
+          # Debugging: Bekreft at filene er generert
+          ls -la
+          if [ ! -s trivy-report.json ]; then
+            echo "❌ trivy-report.json ble ikke funnet eller er tom!"
+            exit 1
+          else
+            echo "✅ trivy-report.json funnet!"
+          fi
 
+      # Step 2: Lagre Trivy rapporten som en artefakt
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-report.json
 
-      # Step 2: Scan Terraform code with Checkov for Azure-specific vulnerabilities
+      # Step 3: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov
         continue-on-error: true
         run: |
           pip install checkov  # Install Checkov
-          # Navigate to the root directory and scan the entire repository including modules
-          cd ../..  # Adjust path to root
           checkov -d . --framework terraform --download-external-modules true --output json > checkov-report.json
           cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
 
-      # Step 3: Output Checkov summary
+      # Step 4: Output Checkov summary
       - name: Output Checkov summary
         id: checkov-summary
         run: |
@@ -73,32 +83,42 @@ jobs:
             echo "Checkov report not found!" > checkov-summary.md
           fi
 
-      # Step 4: Rate the severity of the vulnerabilities and prioritize them
-      - name: Rate the severity of the vulnerabilities and prioritize them
+      # Step 5: Hent Trivy-rapporten igjen (for å sikre at den finnes)
+      - name: Download Trivy report
+        uses: actions/download-artifact@v4
+        with:
+          name: trivy-report
+
+      - name: Verify Trivy report exists
+        run: |
+          ls -la  # Debugging
+          if [ ! -s trivy-report.json ]; then
+            echo "❌ trivy-report.json mangler eller er tom!"
+            exit 1
+          else
+            echo "✅ trivy-report.json funnet og klar til bruk!"
+          fi
+
+      # Step 6: Rate the severity of the vulnerabilities and prioritize them
+      - name: Rate vulnerabilities and prioritize
         id: evaluate-vulnerabilities
         run: | 
-          if [ ! -f trivy-report.json ]; then
-            echo "trivy-report.json not found!"
-            exit 1
-          fi
           echo "Rating and prioritizing vulnerabilities..."
           node evaluate_risk.js trivy-report.json > risk_report.md
         
-      # Step 5: If there is no permanent fix, create a temporary fix
+      # Step 7: If there is no permanent fix, create a temporary fix
       - name: Create a temporary fix
         id: apply-workarounds
         run: |
-          echo "Checking if risk_report.md exists..."
-          if [ ! -f risk_report.md ]; then
-            echo "risk_report.md not found!"
+          if [ ! -s risk_report.md ]; then
+            echo "❌ risk_report.md not found!"
             exit 1
           fi
           echo "risk_report.md found. Proceeding with temporary fixes..."
-          echo "Creating temporary fixes..."
           node implement_workarounds.js risk_report.md
           echo "Temporary fixes applied successfully."
 
-      # Step 6: Generate a detailed report of the vulnerabilities
+      # Step 8: Generate a detailed report of the vulnerabilities
       - name: Generate a detailed report of the vulnerabilities
         id: generate-advisory 
         run: | 
@@ -107,21 +127,20 @@ jobs:
           echo "Detailed report generated:" && \
           cat detailed_advisory.md
 
-      # Step 7: Create GitHub issue with detailed report
+      # Step 9: Create GitHub issue with detailed report
       - name: Create GitHub issue
         run: |
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)\n\n$(cat checkov-summary.md)" --label "security"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the built-in GITHUB_TOKEN
-        
-      # Step 8: Update documentation with risk assessment
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 10: Update documentation with risk assessment
       - name: Update documentation with risk assessment
         run: |
-          echo "Updating documentation..."
           node update_documentation.js risk_report.md detailed_advisory.md checkov-summary.md
 
-      # Step 9: Save the report as an artifact
-      - name: Save the report as an artifact
+      # Step 11: Save all reports as an artifact
+      - name: Save security risk report
         uses: actions/upload-artifact@v4
         with:
           name: security-risk-report

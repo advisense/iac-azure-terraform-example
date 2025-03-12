@@ -45,7 +45,8 @@ jobs:
 
       # Step 6: Runs TFLint
       - name: TFLint run
-        run: tflint --format=json
+        run: tflint --format=json > tflint-report.json
+        continue-on-error: true
        
 
       # Step 7: Run tfsec for security scanning

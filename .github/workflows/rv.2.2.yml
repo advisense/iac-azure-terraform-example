@@ -6,14 +6,19 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 0 * * 1'  # Run every Monday at 00:00
-  workflow_dispatch:  # Allow manual triggering of the workflow
+    - cron: '0 0 * * 1' # Run every Monday at 00:00
+  workflow_dispatch: # Allow manual triggering of the workflow
 
 jobs:
   security-risk-management:
     name: Security Risk Management
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get the entire Git history
+
       # Step 1: Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,8 +35,8 @@ jobs:
       - name: Scan remote GitHub repository for vulnerabilities
         id: scan-remote-repo
         run: |
-          trivy repo https://github.com/advisense/iac-azure-terraform-example.git --output trivy-report.json --severity HIGH,CRITICAL --pkg-types os,library --ignore-unfixed false
-      
+          trivy repo https://github.com/advisense/iac-azure-terraform-example.git --output trivy-report.json --severity HIGH,CRITICAL --ignore-unfixed false
+
       # Step 4: Generate and output the report
       - name: Generate and output the report
         run: |
@@ -117,14 +122,15 @@ jobs:
           echo "Updating documentation..."
           node update_documentation.js risk_report.md detailed_advisory.md checkov-summary.md
 
-      # Step 12: Save all the reports as artifacts
-      - name: Save all reports as artifacts
+      # Step 12: Save the report as an artifact
+      - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:
-          name: security-risk-reports
+          name: security-risk-report
           path: |
             trivy-report.json
             checkov-report.json
+            trivy-tf-report.json
             risk_report.md
             detailed_advisory.md
             checkov-summary.md

@@ -4,6 +4,7 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
   let trivyData;
   let checkovData;
 
+  // Les Trivy-rapporten
   try {
     trivyData = JSON.parse(fs.readFileSync(trivyReportPath, 'utf8'));
   } catch (error) {
@@ -11,6 +12,7 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
     trivyData = { Results: [] };  // Fallback hvis Trivy-rapporten ikke kan leses
   }
 
+  // Les Checkov-rapporten
   try {
     checkovData = JSON.parse(fs.readFileSync(checkovReportPath, 'utf8'));
   } catch (error) {
@@ -18,11 +20,16 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
     checkovData = { results: [], summary: {} };  // Fallback hvis Checkov-rapporten ikke kan leses
   }
 
+  // Logge trivyData for debugging
+  console.log('Trivy Data:', JSON.stringify(trivyData, null, 2));
+
   let markdown = `# Security Advisory Report\n\n**Report generated at:** ${new Date().toISOString()}\n\n## Risk Summary\n\n`;
 
   // Trivy Results
   markdown += `### Trivy Results\n`;
-  if (trivyData.Results.length > 0) {
+  
+  // Legg til sjekk for at Results er definert og er et array
+  if (trivyData.Results && Array.isArray(trivyData.Results) && trivyData.Results.length > 0) {
     trivyData.Results.forEach(result => {
       markdown += `#### Target: ${result.Target}\n`;
       markdown += `- **Class:** ${result.Class}\n`;

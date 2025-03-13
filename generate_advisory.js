@@ -22,29 +22,31 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
 
   // Trivy Results
   markdown += `### Trivy Results\n`;
-  trivyData.Results.forEach(result => {
-    markdown += `#### Target: ${result.Target}\n`;
-    markdown += `- **Class:** ${result.Class}\n`;
-    markdown += `- **Type:** ${result.Type}\n`;
-    if (result.MisconfSummary) {
-      markdown += `- **Successes:** ${result.MisconfSummary.Successes}\n`;
-      markdown += `- **Failures:** ${result.MisconfSummary.Failures}\n`;
-    }
-    if (result.Misconfigurations) {
-      result.Misconfigurations.forEach(misconf => {
-        markdown += `\n##### Misconfiguration: ${misconf.Title}\n`;
-        markdown += `- **Description:** ${misconf.Description}\n`;
-        markdown += `- **Message:** ${misconf.Message}\n`;
-        markdown += `- **Severity:** ${misconf.Severity}\n`;
-        markdown += `- **Resolution:** ${misconf.Resolution}\n`;
-        markdown += `- **References:**\n`;
-        misconf.References.forEach(ref => {
-          markdown += `  - ${ref}\n`;
+  if (trivyData.Results.length > 0) {
+    trivyData.Results.forEach(result => {
+      markdown += `#### Target: ${result.Target}\n`;
+      markdown += `- **Class:** ${result.Class}\n`;
+      markdown += `- **Type:** ${result.Type}\n`;
+
+      if (result.Vulnerabilities && result.Vulnerabilities.length > 0) {
+        result.Vulnerabilities.forEach(vuln => {
+          markdown += `\n##### Vulnerability: ${vuln.VulnerabilityID}\n`;
+          markdown += `- **Package:** ${vuln.PkgName} (${vuln.InstalledVersion})\n`;
+          markdown += `- **Fixed Version:** ${vuln.FixedVersion || 'None'}\n`;
+          markdown += `- **Severity:** ${vuln.Severity}\n`;
+          markdown += `- **Description:** ${vuln.Description}\n`;
+          markdown += `- **References:**\n`;
+          vuln.References.forEach(ref => {
+            markdown += `  - ${ref}\n`;
+          });
         });
-      });
-    }
-    markdown += '\n';
-  });
+      } else {
+        markdown += `- No vulnerabilities found.\n`;
+      }
+    });
+  } else {
+    markdown += `No Trivy results found.\n\n`;
+  }
 
   // Checkov Results
   markdown += `### Checkov Results\n`;
@@ -57,11 +59,9 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
       markdown += `- **Resource:** ${result.resource}\n`;
       markdown += `- **Line:** ${result.file_line_range.join('-')}\n\n`;
     });
-  } else {
-    markdown += `No Checkov results found.\n\n`;
   }
 
-  // Add Checkov Summary
+  // Checkov Summary
   markdown += `### Checkov Summary\n`;
   markdown += `- **Passed checks:** ${checkovData.summary?.passed || 0}\n`;
   markdown += `- **Failed checks:** ${checkovData.summary?.failed || 0}\n`;

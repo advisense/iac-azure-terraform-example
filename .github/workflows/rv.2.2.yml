@@ -36,7 +36,7 @@ jobs:
           output: trivy-report.json  # Save the results to a JSON file
           exit-code: 0
           severity: HIGH,CRITICAL
-          vuln-type: os,library,config
+          vuln-type: os,library
           ignore-unfixed: false
         continue-on-error: true
       

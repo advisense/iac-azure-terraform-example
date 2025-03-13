@@ -88,7 +88,7 @@ jobs:
           echo "Docker Image Scan Report:"
           cat trivy-report-image.json
           echo "Terraform IaC Scan Report:"
-          cat trivy-report-iac.json
+          cat trivy-report.json
 
       # Upload reports as artifacts
       - name: Save reports as artifacts
@@ -97,7 +97,7 @@ jobs:
           name: security-risk-reports
           path: |
             trivy-report-image.json
-            trivy-report-iac.json
+            trivy-report.json
 
 
       # Step 6: Scan Terraform code with Checkov for Azure-specific vulnerabilities

@@ -4,7 +4,7 @@ function implementWorkarounds(riskReportPath) {
     try {
         console.log("Implementing temporary workarounds...");
 
-        // Simulerer en workaround, f.eks. opprette en dummy-fil hvis den mangler
+        // Simulate dummy configuration file creation
         const dummyConfig = 'config.json';
 
         if (!fs.existsSync(dummyConfig)) {
@@ -14,7 +14,7 @@ function implementWorkarounds(riskReportPath) {
             console.log(`${dummyConfig} already exists.`);
         }
 
-        // Les risikorapporten
+        
         const riskReport = fs.readFileSync(riskReportPath, 'utf8');
         console.log('Risk report content:', riskReport);
 
@@ -24,6 +24,6 @@ function implementWorkarounds(riskReportPath) {
     }
 }
 
-// Bruk filstier fra kommandolinjeargumenter
+
 const riskReportPath = process.argv[2] || 'risk_report.md';
 implementWorkarounds(riskReportPath);

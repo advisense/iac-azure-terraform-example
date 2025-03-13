@@ -28,23 +28,23 @@ function evaluateRisk(vulnerabilities) {
 
 function generateRiskReport(trivyReportPath, outputPath) {
     try {
-        // Les trivy-rapporten
+       // Read the Trivy report
         const rawData = fs.readFileSync(trivyReportPath, 'utf8');
         const report = JSON.parse(rawData);
 
-        // Logg dataen for å se hva den inneholder
+        // Log the parsed report to confirm it was read successfully
         console.log('Parsed report:', report);
 
-        // Anta at sårbarhetene er i en array under en bestemt nøkkel
+        // Extract vulnerabilities from the report
         const vulnerabilities = report.Results ? report.Results.flatMap(result => result.Vulnerabilities || []) : [];
 
-        // Logg sårbarhetene for å bekrefte at de er en array
+        // Log the parsed vulnerabilities to confirm they were extracted successfully
         console.log('Parsed vulnerabilities:', vulnerabilities);
 
-        // Vurder og prioriter sårbarhetene
+        // Evaluate the risk of each vulnerability
         const evaluatedVulnerabilities = evaluateRisk(vulnerabilities);
 
-        // Generer rapport
+        // Generate a risk report
         let reportContent = '# Risk Report\n\n';
         evaluatedVulnerabilities.forEach(vuln => {
             reportContent += `## ${vuln.VulnerabilityID}\n`;
@@ -53,7 +53,7 @@ function generateRiskReport(trivyReportPath, outputPath) {
             reportContent += `- Description: ${vuln.Description}\n\n`;
         });
 
-        // Skriv rapporten til en fil
+        // Write the risk report to a file
         fs.writeFileSync(outputPath, reportContent);
         console.log('Risk report generated successfully.');
     } catch (error) {

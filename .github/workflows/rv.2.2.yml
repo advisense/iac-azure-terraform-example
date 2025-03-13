@@ -25,16 +25,12 @@ jobs:
         with:
           version: 'v0.57.1'  # Set the version you need
 
-      # Step 3: Scan remote GitHub repository for vulnerabilities
-      - name: Scan remote GitHub repository for vulnerabilities
-        id: scan-remote-repo
+      # Step 3: Scan repository for vulnerabilities
+      - name: Scan Terraform files with Trivy
+        id: trivy-scan
         run: |
-          trivy repo \
-            --output trivy-report.json \
-            --severity HIGH,CRITICAL \
-            --ignore-unfixed=false \
-            --scanners vuln,misconfig,secret \
-            https://github.com/advisense/iac-azure-terraform-example.git
+          trivy config --output trivy-tf-report.json --severity HIGH,CRITICAL --ignore-unfixed=false .
+    
 
       # Step 4: Generate and output the report
       - name: Generate and output the report
@@ -120,7 +116,7 @@ jobs:
         run: |
           echo "Updating documentation..."
           node update_documentation.js risk_report.md detailed_advisory.md checkov-summary.md
-          
+
     # Step 12: Save the report as an artifact
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4

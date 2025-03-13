@@ -29,8 +29,13 @@ jobs:
       - name: Scan remote GitHub repository for vulnerabilities
         id: scan-remote-repo
         run: |
-          trivy repo --output trivy-report.json --severity HIGH,CRITICAL --ignore-unfixed false https://github.com/advisense/iac-azure-terraform-example.git 
-
+          trivy repo \
+            --output trivy-report.json \
+            --severity HIGH,CRITICAL \
+            --ignore-unfixed=false \
+            --scanners vuln,misconfig,secret \
+            https://github.com/advisense/iac-azure-terraform-example.git
+            
       # Step 4: Generate and output the report
       - name: Generate and output the report
         run: |

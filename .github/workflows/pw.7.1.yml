@@ -4,9 +4,6 @@ on:
   push:
     branches-ignore:
       - main      #Ignores main branch as this branch requires manual review.
-    paths:
-      - '**/*.tf'
-
 jobs:
   test-and-validate:
     runs-on: ubuntu-latest
@@ -30,14 +27,12 @@ jobs:
       - name: Terraform Format Check
         id: terraform-fmt
         run: terraform fmt -check -recursive
-        continue-on-error: true
-       
 
       # Step 4: Validate Terraform configuration
       - name: Terraform Validate
         id: terraform-validate
         run: terraform validate -json
-        continue-on-error: true
+
       # Step 5: Setup TFLint
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v3
@@ -48,7 +43,7 @@ jobs:
       # Step 6: Runs TFLint
       - name: TFLint run
         run: tflint --format=json > tflint-report.json
-        continue-on-error: true
+
        
 
       # Step 7: Run tfsec for security scanning

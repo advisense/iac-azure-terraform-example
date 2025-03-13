@@ -29,7 +29,7 @@ jobs:
       - name: Scan Terraform files with Trivy
         id: trivy-scan
         run: |
-          trivy config --output trivy-tf-report.json --severity HIGH,CRITICAL --ignore-unfixed=false .
+          trivy config --output trivy-tf-report.json --severity HIGH,CRITICAL .
     
 
       # Step 4: Generate and output the report

@@ -26,33 +26,79 @@ jobs:
       #    version: 'v0.57.1'  # Set the version you need
 
       # Step 1: Scan repository for vulnerabilities
-      - name: Scan repository for vulnerabilities
-        id: trivy
-        # Uses the Trivy action to scan the repository for vulnerabilities
+      # - name: Scan repository for vulnerabilities
+      #  id: trivy
+      #  # Uses the Trivy action to scan the repository for vulnerabilities
+      #  uses: aquasecurity/trivy-action@master
+      #  with:
+      #    image-ref: 'docker.io/library/alpine:3.10'
+      #    format: json  # Shows the scan results in the terminal and saves them to a JSON file
+      #    output: trivy-report.json  # Save the results to a JSON file
+      #    exit-code: 0
+      #    severity: HIGH,CRITICAL
+      #    vuln-type: os,library
+      #    ignore-unfixed: false
+      #  continue-on-error: true
+      
+
+      # Step 4: Generate and output the report
+      #- name: Generate and output the report
+      #  run: |
+      #    echo "Trivy scan completed. Output:"
+      #    cat trivy-report.json
+
+      # Step 5: Save the report as an artifact
+      #- name: Save the report as an artifact
+      #  uses: actions/upload-artifact@v4
+      #  with:
+      #    name: security-risk-report
+      #    path: trivy-report.json
+    
+      # Trivy scan for Docker image
+      - name: Scan Docker image for vulnerabilities
+        id: trivy-image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'docker.io/library/alpine:3.10'
-          format: json  # Shows the scan results in the terminal and saves them to a JSON file
-          output: trivy-report.json  # Save the results to a JSON file
+          format: json
+          output: trivy-report-image.json
           exit-code: 0
           severity: HIGH,CRITICAL
           vuln-type: os,library
           ignore-unfixed: false
         continue-on-error: true
-      
 
-      # Step 4: Generate and output the report
-      - name: Generate and output the report
+      # Trivy scan for misconfigurations in Terraform
+      - name: Scan IaC (Terraform) for misconfigurations
+        id: trivy-iac
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: './modules'  # Skanner Terraform-filer i modules/
+          format: json
+          output: trivy-report-iac.json
+          exit-code: 0
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false
+        continue-on-error: true
+
+      # Output the reports
+      - name: Output the reports
         run: |
-          echo "Trivy scan completed. Output:"
-          cat trivy-report.json
+          echo "Docker Image Scan Report:"
+          cat trivy-report-image.json
+          echo "Terraform IaC Scan Report:"
+          cat trivy-report-iac.json
 
-      # Step 5: Save the report as an artifact
-      - name: Save the report as an artifact
+      # Upload reports as artifacts
+      - name: Save reports as artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: security-risk-report
-          path: trivy-report.json
+          name: security-risk-reports
+          path: |
+            trivy-report-image.json
+            trivy-report-iac.json
+
 
       # Step 6: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov

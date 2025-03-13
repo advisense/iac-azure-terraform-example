@@ -1,7 +1,10 @@
 name: rv.2.2
 
+#TODO er det riktig å bygge opp denne med push og pull_request? mtp. at jeg nå kjører scheduled job??? 
 on:
   push:
+    branches:
+      - main
   pull_request:
     branches:
       - main

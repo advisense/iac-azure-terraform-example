@@ -76,7 +76,7 @@ jobs:
           scan-type: 'fs'
           scan-ref: './modules'  # Skanner Terraform-filer i modules/
           format: json
-          output: trivy-report-iac.json
+          output: trivy-report.json
           exit-code: 0
           severity: HIGH,CRITICAL
           ignore-unfixed: false

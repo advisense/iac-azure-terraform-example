@@ -9,7 +9,7 @@ on:
     - cron: '0 0 * * 1' # Run every Monday at 00:00
   workflow_dispatch: # Allow manual triggering of the workflow
 
-jobs: 
+jobs:
   security-risk-management:
     name: Security Risk Management
     runs-on: ubuntu-latest
@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Get the entire Git history
-    
+
       # Step 1: Install the latest version of Trivy
       - name: Install the latest version of Trivy
         run: |
@@ -33,18 +33,18 @@ jobs:
         run: |
           # Scan the entire repository starting from the root directory
           trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed ../../
-          
+
           # Initialiser og oppdater submoduler
           git submodule update --init --recursive
-          
+
           # Naviger til rotmappen
-          cd ../.. 
+          cd ../..
           pwd  # Debugging
           ls -la  # Debugging
-          
+
           # Kjør Trivy skanning
           trivy fs --security-checks vuln,config --format json --output trivy-report.json --severity HIGH,CRITICAL --vuln-type os,library --ignore-unfixed .
-      
+
           ls -la  # Debugging for å sjekke om rapporten ble laget
 
       # Step 3: Scan Terraform code with Checkov for Azure-specific vulnerabilities
@@ -78,7 +78,7 @@ jobs:
       # Step 5: Rate the severity of the vulnerabilities and prioritize them
       - name: Rate the severity of the vulnerabilities and prioritize them
         id: evaluate-vulnerabilities
-        run: | 
+        run: |
           if [ ! -f trivy-report.json ]; then
             echo "trivy-report.json not found!"
             exit 1
@@ -102,8 +102,8 @@ jobs:
 
       # Step 7: Generate a detailed report of the vulnerabilities
       - name: Generate a detailed report of the vulnerabilities
-        id: generate-advisory 
-        run: | 
+        id: generate-advisory
+        run: |
           echo "Generating detailed report..." && \
           node generate_advisory.js trivy-report.json checkov-report.json checkov-summary.md && \
           echo "Detailed report generated:" && \

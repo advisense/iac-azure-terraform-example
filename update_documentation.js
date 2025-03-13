@@ -1,33 +1,23 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
 
-const riskReportPath = "risk_report.md";
-const advisoryPath = "advisory.md";
-const documentationPath = "SECURITY.md"; // Endre dette hvis du vil oppdatere en annen dokumentasjon
+function updateDocumentation(trivyReport, advisoryReport) {
+  if (!fs.existsSync(trivyReport)) {
+    console.error(`Error: ${trivyReport} not found!`);
+    process.exit(1);
+  }
+  if (!fs.existsSync(advisoryReport)) {
+    console.error(`Error: ${advisoryReport} not found!`);
+    process.exit(1);
+  }
 
-console.log("Updating documentation...");
-
-// Sjekk om nødvendige filer finnes
-if (!fs.existsSync(riskReportPath) || !fs.existsSync(advisoryPath)) {
-  console.error("Error: Required input files not found!");
-  process.exit(1);
+  // Logic to update documentation
+  console.log('Updating documentation...');
+  // Example: Append advisory report to documentation
+  const advisoryContent = fs.readFileSync(advisoryReport, 'utf8');
+  fs.appendFileSync('documentation.md', advisoryContent);
+  console.log('Documentation updated successfully.');
 }
 
-// Les innhold fra risk_report.md og advisory.md
-const riskReport = fs.readFileSync(riskReportPath, "utf8");
-const advisory = fs.readFileSync(advisoryPath, "utf8");
-
-// Opprett eller oppdater dokumentasjonen
-let newContent = `# Security Documentation\n\n`;
-newContent += `## Latest Risk Assessment\n${riskReport}\n\n`;
-newContent += `## Security Advisory\n${advisory}\n\n`;
-
-if (fs.existsSync(documentationPath)) {
-  console.log("Updating existing documentation...");
-  fs.appendFileSync(documentationPath, newContent);
-} else {
-  console.log("Creating new documentation file...");
-  fs.writeFileSync(documentationPath, newContent);
-}
-
-console.log("Documentation updated successfully!");
+const trivyReport = process.argv[2];
+const advisoryReport = process.argv[3];
+updateDocumentation(trivyReport, advisoryReport);

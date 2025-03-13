@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-      - annSophie-po.1.1
   workflow_dispatch: # Allow manual triggering
 
 jobs:
@@ -36,7 +35,6 @@ jobs:
          if [ ! -f trivy-results.json ]; then
          touch trivy-results.json
          fi
-
 
         # Step 5: Install and run Checkov
       - name: Run Checkov action

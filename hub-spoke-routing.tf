@@ -15,7 +15,7 @@ module "hub-to-spoke-internalapp" {
   use_remote_gateways          = "false"
 
 }
-
+ 
 # vnet-peering Module is used to create peering between Virtual Networks
 module "internalapp-to-hub" {
   source = "./modules/vnet-peering"

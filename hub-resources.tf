@@ -13,7 +13,7 @@ module "hub-vnet" {
   # module.hub-vnet.vnet_subnet_id[3] = AzureFirewallSubnet        - Alphabetical Order
   # module.hub-vnet.vnet_subnet_id[4] = GatewaySubnet              - Alphabetical Order
   # module.hub-vnet.vnet_subnet_id[5] = JumpboxSubnet              - Alphabetical Order
-
+ 
   subnet_names = {
     "GatewaySubnet" = {
       subnet_name      = "GatewaySubnet"
@@ -26,7 +26,7 @@ module "hub-vnet" {
       address_prefixes = ["10.50.2.0/24"]
       route_table_name = ""
       snet_delegation  = ""
-    },
+    }, 
     "AzureFirewallManagementSubnet" = {
       subnet_name      = "AzureFirewallManagementSubnet"
       address_prefixes = ["10.50.6.0/24"]
@@ -134,9 +134,9 @@ module "azure_firewall_01" {
   subnet_id_mgmt            = module.hub-vnet.vnet_subnet_id[2]
   public_ip_address_id_mgmt = module.public_ip_04.public_ip_address_id
 }
+ 
 
-
-
+ 
 
 module "azure_firewall_rule_coll_group" {
   source     = "./modules/azurefirewallrulecolgrp"

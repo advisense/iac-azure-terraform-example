@@ -1,10 +1,9 @@
 name: rv.2.2
 
+
 #TODO er det riktig å bygge opp denne med push og pull_request? mtp. at jeg nå kjører scheduled job??? 
 on:
   push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -21,6 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Get the entire Git history
+
 
       - name: Set up Trivy
         uses: aquasecurity/setup-trivy@v0.2.2
@@ -67,7 +67,8 @@ jobs:
         continue-on-error: true
         run: |
           pip install checkov  # Install Checkov
-          checkov -d . --framework terraform --output json > checkov-report.json  # Scan the entire repository
+          # Scan the entire repository starting from the root directory
+          checkov -d ./deployments --check Azure --output json > checkov-report.json  # Scan the deployments directory
           cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
 
       # Save Checkov report
@@ -162,6 +163,7 @@ jobs:
           path: |
             trivy-report.json
             checkov-report.json
+            checkov-summary.md
             risk_report.md
             detailed_advisory.md
             checkov-summary.md

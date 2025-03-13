@@ -55,11 +55,10 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
   markdown += `- **Skipped checks:** ${checkovData.summary?.skipped || 0}\n`;
   markdown += `- **Parsing errors:** ${checkovData.summary?.parsing_errors || 0}\n`;
 
-  
+  markdown += `## Recommended Actions\n- Update vulnerable dependencies.\n- Apply available patches or workarounds.\n`;
 
   return markdown;
 }
-markdown += `## Recommended Actions\n- Update vulnerable dependencies.\n- Apply available patches or workarounds.\n`;
 
 const trivyReportPath = process.argv[2];
 const checkovReportPath = process.argv[3];

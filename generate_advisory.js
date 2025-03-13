@@ -1,8 +1,15 @@
 const fs = require('fs');
 
 function generateMarkdownReport(trivyReportPath, checkovReportPath) {
-  const trivyData = JSON.parse(fs.readFileSync(trivyReportPath, 'utf8'));
+  let trivyData;
   let checkovData;
+
+  try {
+    trivyData = JSON.parse(fs.readFileSync(trivyReportPath, 'utf8'));
+  } catch (error) {
+    console.error(`Error reading Trivy report: ${error.message}`);
+    trivyData = { Results: [] };  // Fallback hvis Trivy-rapporten ikke kan leses
+  }
 
   try {
     checkovData = JSON.parse(fs.readFileSync(checkovReportPath, 'utf8'));

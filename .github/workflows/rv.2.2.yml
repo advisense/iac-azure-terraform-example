@@ -35,7 +35,7 @@ jobs:
             --ignore-unfixed=false \
             --scanners vuln,misconfig,secret \
             https://github.com/advisense/iac-azure-terraform-example.git
-            
+
       # Step 4: Generate and output the report
       - name: Generate and output the report
         run: |
@@ -120,12 +120,12 @@ jobs:
         run: |
           echo "Updating documentation..."
           node update_documentation.js risk_report.md detailed_advisory.md checkov-summary.md
-
-      # Step 12: Save the report as an artifact
+          
+    # Step 12: Save the report as an artifact
       - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:
-          name: security-risk-report
+          name: security-risk-report-${{ github.run_id }}
           path: |
             trivy-report.json
             checkov-report.json

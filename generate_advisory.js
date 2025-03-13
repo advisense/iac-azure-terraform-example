@@ -48,7 +48,6 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
     markdown += `No Trivy results found.\n\n`;
   }
 
- 
   // Checkov Summary
   markdown += `### Checkov Summary\n`;
   markdown += `- **Passed checks:** ${checkovData.summary?.passed || 0}\n`;

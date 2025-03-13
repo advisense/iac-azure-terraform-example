@@ -1,76 +1,82 @@
 const fs = require('fs');
 
-function generateMarkdownReport(trivyReport, checkovReport, checkovSummary) {
-  const trivyData = JSON.parse(fs.readFileSync(trivyReport, 'utf8'));
+function generateMarkdownReport(trivyReportPath, checkovReportPath) {
+  let trivyData;
   let checkovData;
 
   try {
-    checkovData = JSON.parse(fs.readFileSync(checkovReport, 'utf8'));
+    trivyData = JSON.parse(fs.readFileSync(trivyReportPath, 'utf8'));
+  } catch (error) {
+    console.error(`Error reading Trivy report: ${error.message}`);
+    trivyData = { Results: [] };  // Fallback hvis Trivy-rapporten ikke kan leses
+  }
+
+  try {
+    checkovData = JSON.parse(fs.readFileSync(checkovReportPath, 'utf8'));
   } catch (error) {
     console.error(`Error reading Checkov report: ${error.message}`);
-    checkovData = { results: [] };  // Fallback to empty results
+    checkovData = { results: [], summary: {} };  // Fallback hvis Checkov-rapporten ikke kan leses
   }
 
   let markdown = `# Security Advisory Report\n\n**Report generated at:** ${new Date().toISOString()}\n\n## Risk Summary\n\n`;
 
-  // Include Trivy results
+  // Trivy Results
   markdown += `### Trivy Results\n`;
-  trivyData.Results.forEach(result => {
-    markdown += `#### Target: ${result.Target}\n`;
-    markdown += `- **Class:** ${result.Class}\n`;
-    markdown += `- **Type:** ${result.Type}\n`;
-    if (result.MisconfSummary) {
-      markdown += `- **Successes:** ${result.MisconfSummary.Successes}\n`;
-      markdown += `- **Failures:** ${result.MisconfSummary.Failures}\n`;
-    }
-    if (result.Misconfigurations) {
-      result.Misconfigurations.forEach(misconf => {
-        markdown += `\n##### Misconfiguration: ${misconf.Title}\n`;
-        markdown += `- **Description:** ${misconf.Description}\n`;
-        markdown += `- **Message:** ${misconf.Message}\n`;
-        markdown += `- **Severity:** ${misconf.Severity}\n`;
-        markdown += `- **Resolution:** ${misconf.Resolution}\n`;
-        markdown += `- **References:**\n`;
-        misconf.References.forEach(ref => {
-          markdown += `  - ${ref}\n`;
-        });
-      });
-    }
-    markdown += '\n';
-  });
+  if (trivyData.Results && trivyData.Results.length > 0) {
+    trivyData.Results.forEach(result => {
+      markdown += `#### Target: ${result.Target}\n`;
+      markdown += `- **Class:** ${result.Class}\n`;
+      markdown += `- **Type:** ${result.Type}\n`;
 
-  // Include Checkov results
-  markdown += `### Checkov Results\n`;
-  if (checkovData.results && checkovData.results.length > 0) {
-    checkovData.results.forEach(result => {
-      markdown += `#### File: ${result.file_path}\n`;
-      markdown += `- **Check ID:** ${result.check_id}\n`;
-      markdown += `- **Severity:** ${result.severity}\n`;
-      markdown += `- **Description:** ${result.description}\n`;
-      markdown += `- **Resource:** ${result.resource}\n`;
-      markdown += `- **Line:** ${result.file_line_range.join('-')}\n\n`;
+      if (result.Vulnerabilities && result.Vulnerabilities.length > 0) {
+        result.Vulnerabilities.forEach(vuln => {
+          markdown += `\n##### Vulnerability: ${vuln.VulnerabilityID}\n`;
+          markdown += `- **Package:** ${vuln.PkgName} (${vuln.InstalledVersion})\n`;
+          markdown += `- **Fixed Version:** ${vuln.FixedVersion || 'None'}\n`;
+          markdown += `- **Severity:** ${vuln.Severity}\n`;
+          markdown += `- **Description:** ${vuln.Description}\n`;
+          markdown += `- **References:**\n`;
+          vuln.References.forEach(ref => {
+            markdown += `  - ${ref}\n`;
+          });
+        });
+      } else {
+        markdown += `- No vulnerabilities found.\n`;
+      }
     });
   } else {
-    markdown += `No Checkov results found.\n\n`;
+    markdown += `No Trivy results found.\n\n`;
   }
 
-  // Include Checkov summary
+  // Checkov Summary
   markdown += `### Checkov Summary\n`;
-  markdown += fs.readFileSync(checkovSummary, 'utf8');
-
+  markdown += `- **Passed checks:** ${checkovData.summary?.passed || 0}\n`;
+  markdown += `- **Failed checks:** ${checkovData.summary?.failed || 0}\n`;
+  markdown += `- **Skipped checks:** ${checkovData.summary?.skipped || 0}\n`;
+  markdown += `- **Parsing errors:** ${checkovData.summary?.parsing_errors || 0}\n`;
   markdown += `## Recommended Actions\n- Update vulnerable dependencies.\n- Apply available patches or workarounds.\n`;
 
   return markdown;
 }
 
-const trivyReport = process.argv[2];
-const checkovReport = process.argv[3];
-const checkovSummary = process.argv[4];
-const outputPath = process.argv[5] || 'detailed_advisory.md';
-const output = generateMarkdownReport(trivyReport, checkovReport, checkovSummary);
+const trivyReportPath = process.argv[2];
+const checkovReportPath = process.argv[3];
+const outputPath = process.argv[4] || 'detailed_advisory.md';
+
+// Validate arguments
+if (!trivyReportPath || !checkovReportPath) {
+  console.error('Error: Missing required arguments.');
+  process.exit(1);
+}
+
+const output = generateMarkdownReport(trivyReportPath, checkovReportPath);
 fs.writeFileSync(outputPath, output);  // Save as detailed_advisory.md
+<<<<<<< HEAD
 <<<<<<< HEAD
 console.log('Advisory report generated successfully.');
 =======
 console.log('Advisory report generated successfully.');
 >>>>>>> 88fd24a4d963be336bb56b09580de553cd8af6c5
+=======
+console.log('Advisory report generated successfully.');
+>>>>>>> 188c5d593c60eb689ee8039be9808c8e61b4a909

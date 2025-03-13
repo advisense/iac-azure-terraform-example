@@ -19,7 +19,7 @@ variable "ubuntu-linux-publisher" {
   description = "Ubuntu Linux Publisher used to build VMs"
   default     = "Canonical"
 }
-
+   
 # Ubuntu Linux Offer used to build VMs
 variable "ubuntu-linux-offer" {
   type        = string
@@ -33,7 +33,7 @@ variable "ubuntu-linux-sku" {
   description = "Ubuntu Linux Server SKU used to build VMs"
   default     = "22_04-lts"
 }
-
+ 
 variable "container_image" {
   type        = string
   description = "the id and tag of the container image to use"

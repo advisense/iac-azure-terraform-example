@@ -61,7 +61,7 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
 }
 
 const trivyReportPath = process.argv[2];
-const checkovReportPath = process.argv[3];
+/**const checkovReportPath = process.argv[3];*/
 const outputPath = process.argv[4] || 'detailed_advisory.md';
 
 // Validate arguments

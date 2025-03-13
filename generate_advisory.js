@@ -48,19 +48,7 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
     markdown += `No Trivy results found.\n\n`;
   }
 
-  // Checkov Results
-  markdown += `### Checkov Results\n`;
-  if (checkovData.results && checkovData.results.length > 0) {
-    checkovData.results.forEach(result => {
-      markdown += `#### File: ${result.file_path}\n`;
-      markdown += `- **Check ID:** ${result.check_id}\n`;
-      markdown += `- **Severity:** ${result.severity}\n`;
-      markdown += `- **Description:** ${result.description}\n`;
-      markdown += `- **Resource:** ${result.resource}\n`;
-      markdown += `- **Line:** ${result.file_line_range.join('-')}\n\n`;
-    });
-  }
-
+ 
   // Checkov Summary
   markdown += `### Checkov Summary\n`;
   markdown += `- **Passed checks:** ${checkovData.summary?.passed || 0}\n`;

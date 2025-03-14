@@ -61,24 +61,17 @@ jobs:
         with:
           name: trivy-reports-${{ github.run_id }}
           path: trivy-reports/*.json
-
-      # Scan Terraform code with Checkov
+              
+              
+      # Step 6: Scan Terraform code with Checkov for Azure-specific vulnerabilities
       - name: Scan Terraform with Checkov
         continue-on-error: true
         run: |
           pip install checkov  # Install Checkov
-          # Scan the entire repository starting from the root directory
-          checkov -d ./deployments --check Azure --output json > checkov-report.json  # Scan the deployments directory
+          checkov -d . --framework terraform --output json > checkov-report.json  # Scan the entire repository
           cat checkov-report.json || echo "Checkov report not found!"  # Output the Checkov report for debugging
 
-      # Save Checkov report
-      - name: Save Checkov report
-        uses: actions/upload-artifact@v4
-        with:
-          name: checkov-report-${{ github.run_id }}
-          path: checkov-report.json
-
-      # Output Checkov summary
+      # Step 7: Output Checkov summary
       - name: Output Checkov summary
         id: checkov-summary
         run: |
@@ -97,15 +90,8 @@ jobs:
             echo "Checkov report not found!" > checkov-summary.md
           fi
 
-      # Save Checkov summary
-      - name: Save Checkov summary
-        uses: actions/upload-artifact@v4
-        with:
-          name: checkov-summary-${{ github.run_id }}
-          path: checkov-summary.md
-
-      # Rate the severity of vulnerabilities
-      - name: Rate the severity of vulnerabilities and prioritize them
+      # Step 8: Rate the severity of the vulnerabilities and prioritize them
+      - name: Rate the severity of the vulnerabilities and prioritize them
         id: evaluate-vulnerabilities
         run: |
           if [ ! -f trivy-report.json ]; then
@@ -115,55 +101,49 @@ jobs:
           echo "Rating and prioritizing vulnerabilities..."
           node evaluate_risk.js trivy-report.json > risk_report.md
 
-      # Save risk report
-      - name: Save risk report
-        uses: actions/upload-artifact@v4
-        with:
-          name: risk-report-${{ github.run_id }}
-          path: risk_report.md
-
-      # Apply temporary fixes
+      # Step 9: If there is no permanent fix, create a temporary fix
       - name: Create a temporary fix
         id: apply-workarounds
         run: |
+          echo "Checking if risk_report.md exists..."
           if [ ! -f risk_report.md ]; then
             echo "risk_report.md not found!"
             exit 1
           fi
+          echo "risk_report.md found. Proceeding with temporary fixes..."
+          echo "Creating temporary fixes..."
           node implement_workarounds.js risk_report.md
+          echo "Temporary fixes applied successfully."
 
-      # Generate a detailed advisory
+      # Step 10: Generate a detailed report of the vulnerabilities and update GitHub issues
       - name: Generate a detailed report of the vulnerabilities and update GitHub issues
         id: generate-advisory
         run: |
-          node generate_advisory.js trivy-report.json checkov-report.json
-          cat detailed_advisory.md
-          cat checkov-summary.md
+          echo "Generating detailed report..." && \
+          node generate_advisory.js trivy-report.json checkov-report.json && \
+          echo "Detailed report generated:" && \
+          cat detailed_advisory.md && \
+          echo "Checkov Summary:" && \
+          cat checkov-summary.md && \
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)\n\n$(cat checkov-summary.md)" --label "security"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the built-in GITHUB_TOKEN
 
-      # Save detailed advisory
-      - name: Save detailed advisory
-        uses: actions/upload-artifact@v4
-        with:
-          name: detailed-advisory-${{ github.run_id }}
-          path: detailed_advisory.md
-
-      # Update documentation with risk assessment
+      # Step 11: Update documentation with risk assessment
       - name: Update documentation with risk assessment
         run: |
+          echo "Updating documentation..."
           node update_documentation.js risk_report.md detailed_advisory.md checkov-summary.md
 
-      # Save all reports as artifacts
-      - name: Save all security reports
+    # Step 12: Save the report as an artifact
+      - name: Save the report as an artifact
         uses: actions/upload-artifact@v4
         with:
-          name: security-reports-${{ github.run_id }}
+          name: security-risk-report-${{ github.run_id }}
           path: |
             trivy-report.json
             checkov-report.json
-            checkov-summary.md
+            trivy-tf-report.json
             risk_report.md
             detailed_advisory.md
             checkov-summary.md

@@ -54,6 +54,7 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
   markdown += `- **Failed checks:** ${checkovData.summary?.failed || 0}\n`;
   markdown += `- **Skipped checks:** ${checkovData.summary?.skipped || 0}\n`;
   markdown += `- **Parsing errors:** ${checkovData.summary?.parsing_errors || 0}\n`;
+
   markdown += `## Recommended Actions\n- Update vulnerable dependencies.\n- Apply available patches or workarounds.\n`;
 
   return markdown;
@@ -71,3 +72,4 @@ if (!trivyReportPath || !checkovReportPath) {
 
 const output = generateMarkdownReport(trivyReportPath, checkovReportPath);
 fs.writeFileSync(outputPath, output);  // Save as detailed_advisory.md
+console.log('Advisory report generated successfully.');

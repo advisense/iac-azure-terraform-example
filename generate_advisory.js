@@ -71,4 +71,3 @@ if (!trivyReportPath || !checkovReportPath) {
 
 const output = generateMarkdownReport(trivyReportPath, checkovReportPath);
 fs.writeFileSync(outputPath, output);  // Save as detailed_advisory.md
-console.log('Advisory report generated successfully.');

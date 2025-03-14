@@ -13,7 +13,7 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
 
   try {
     checkovData = JSON.parse(fs.readFileSync(checkovReportPath, 'utf8'));
-    console.log("✅ Loaded Checkov data successfully:", JSON.stringify(checkovData, null, 2));
+    console.log("Loaded Checkov data successfully:", JSON.stringify(checkovData, null, 2));
   } catch (error) {
     console.error(`Error reading Checkov report: ${error.message}`);
     checkovData = { results: [], summary: {} };
@@ -54,8 +54,8 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
 
   // Sjekk faktisk datastruktur
   if (!checkovData.summary) {
-    console.error("⚠️ Checkov summary is missing! Full Checkov data:", JSON.stringify(checkovData, null, 2));
-    markdown += `❌ No Checkov summary available.\n\n`;
+    console.error("Checkov summary is missing! Full Checkov data:", JSON.stringify(checkovData, null, 2));
+    markdown += ` No Checkov summary available.\n\n`;
   } else {
     markdown += `- **Passed checks:** ${checkovData.summary.passed || 0}\n`;
     markdown += `- **Failed checks:** ${checkovData.summary.failed || 0}\n`;

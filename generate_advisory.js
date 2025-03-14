@@ -8,15 +8,14 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
     trivyData = JSON.parse(fs.readFileSync(trivyReportPath, 'utf8'));
   } catch (error) {
     console.error(`Error reading Trivy report: ${error.message}`);
-    trivyData = { Results: [] };
+    trivyData = { Results: [] };  // Fallback hvis Trivy-rapporten ikke kan leses
   }
 
   try {
     checkovData = JSON.parse(fs.readFileSync(checkovReportPath, 'utf8'));
-    console.log("Loaded Checkov data successfully:", JSON.stringify(checkovData, null, 2));
   } catch (error) {
     console.error(`Error reading Checkov report: ${error.message}`);
-    checkovData = { results: [], summary: {} };
+    checkovData = { results: [], summary: {} };  // Fallback hvis Checkov-rapporten ikke kan leses
   }
 
   let markdown = `# Security Advisory Report\n\n**Report generated at:** ${new Date().toISOString()}\n\n## Risk Summary\n\n`;
@@ -51,17 +50,10 @@ function generateMarkdownReport(trivyReportPath, checkovReportPath) {
 
   // Checkov Summary
   markdown += `### Checkov Summary\n`;
-
-  // Sjekk faktisk datastruktur
-  if (!checkovData.summary) {
-    console.error("Checkov summary is missing! Full Checkov data:", JSON.stringify(checkovData, null, 2));
-    markdown += ` No Checkov summary available.\n\n`;
-  } else {
-    markdown += `- **Passed checks:** ${checkovData.summary.passed || 0}\n`;
-    markdown += `- **Failed checks:** ${checkovData.summary.failed || 0}\n`;
-    markdown += `- **Skipped checks:** ${checkovData.summary.skipped || 0}\n`;
-    markdown += `- **Parsing errors:** ${checkovData.summary.parsing_errors || 0}\n`;
-  }
+  markdown += `- **Passed checks:** ${checkovData.summary?.passed || 0}\n`;
+  markdown += `- **Failed checks:** ${checkovData.summary?.failed || 0}\n`;
+  markdown += `- **Skipped checks:** ${checkovData.summary?.skipped || 0}\n`;
+  markdown += `- **Parsing errors:** ${checkovData.summary?.parsing_errors || 0}\n`;
 
   markdown += `## Recommended Actions\n- Update vulnerable dependencies.\n- Apply available patches or workarounds.\n`;
 
@@ -72,10 +64,12 @@ const trivyReportPath = process.argv[2];
 const checkovReportPath = process.argv[3];
 const outputPath = process.argv[4] || 'detailed_advisory.md';
 
+// Validate arguments
 if (!trivyReportPath || !checkovReportPath) {
   console.error('Error: Missing required arguments.');
   process.exit(1);
 }
 
 const output = generateMarkdownReport(trivyReportPath, checkovReportPath);
-fs.writeFileSync(outputPath, output); // Lagre rapporten
+fs.writeFileSync(outputPath, output);  // Save as detailed_advisory.md
+console.log('Advisory report generated successfully.');

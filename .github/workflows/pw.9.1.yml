@@ -1,0 +1,42 @@
+name: PW.9.1
+on:
+  push:
+    branches:
+      - main
+      - annSophie-pw.9.1
+  pull_request:
+    branches:
+      - main
+      - annSophie-pw.9.1
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+    security_scan:
+        runs-on: ubuntu-latest
+        steps:
+        # Step 1: Check out the repository
+        - name: Checkout code
+          uses: actions/checkout@v4
+        # Step 2: Check if the secure baseline is defined
+        - name: Check if baseline file exists
+          run: | 
+            if [ ! -f ./security_baseline.yml ]; then
+            echo "Error: Secure baseline file (security_baseline.yml) not found in the repository root! Aborting workflow."
+            exit 1
+            else
+            echo "Secure baseline file found. Continuing..."
+            fi
+        # Step 3: Install OpenSCAP
+        - name: Install OpenSCAP
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y openscap-scanner scap-security-guide
+        # Step 4: Run OpenSCAP scan
+        - name: Run OpenSCAP scan
+          run: oscap xccdf eval --profile xccdf_org.ssgproject.content_profile_standard --results results.xml /usr/share/xml/scap/ssg/content/ssg-ubuntu2004-ds.xml
+        # Step 5: Ensure the OpenSCAP report exists
+        - name: Ensure OpenSCAP report exists
+          run: |
+            if [ ! -f results.xml ]; then
+              touch results.xml
+            fi

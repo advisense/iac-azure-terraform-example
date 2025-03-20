@@ -37,11 +37,15 @@ jobs:
 
       - name: 📦 Merge SARIF results (if needed)
         run: |
-          jq -s 'reduce .[] as $item ({}; .runs += $item.runs)' snyk_code.sarif snyk_iac.sarif > snyk_combined.sarif
-        if: success() || failure()
+          if [ -f snyk_code.sarif ] && [ -f snyk_iac.sarif ]; then
+            jq -s 'reduce .[] as $item ({}; .runs += $item.runs)' snyk_code.sarif snyk_iac.sarif > snyk_combined.sarif
+          else
+            echo '{}' > snyk_combined.sarif
+          fi
+        if: always()
 
       - name: ☁️ Upload results to GitHub Code Scanning
-        if: success() || failure()
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk_combined.sarif

@@ -1,0 +1,43 @@
+name: test rv.2.1
+
+on:
+  push:
+   # branches: [ "main" ]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    #branches: [ "main" ]
+  schedule:
+    - cron: '18 7 * * 1'
+
+permissions:
+  contents: read
+
+
+jobs:
+  snyk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: snyk/actions/setup@master
+      - name: Snyk Code Test
+        continue-on-error: true
+        run: snyk code test --sarif > snyk_sarif
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Upload results to Github Code Scanning
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk_sarif
+
+      - name: Run Snyk to check configuration files for security issues
+        continue-on-error: true
+        uses: snyk/actions/iac@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          file: ./modules/azurefirewall/main.tf
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif
+          

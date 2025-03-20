@@ -1,8 +1,23 @@
-name: RV2.1 Snyk Infrastructure as Code
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# A sample workflow which checks out your Infrastructure as Code Configuration files,
+# such as Kubernetes, Helm & Terraform and scans them for any security issues.
+# The results are then uploaded to GitHub Security Code Scanning
+#
+# For more examples, including how to limit scans to only high-severity issues
+# and fail PR checks, see https://github.com/snyk/actions/
+
+name: Snyk Infrastructure as Code
 
 on:
   push:
+   # branches: [ "main" ]
   pull_request:
+    # The branches below must be a subset of the branches above
+    #branches: [ "main" ]
   schedule:
     - cron: '18 7 * * 1'
 
@@ -12,60 +27,38 @@ permissions:
 jobs:
   snyk:
     permissions:
-      contents: read
-      security-events: write
-      actions: read
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Snyk CLI
-        run: |
-         npm install -g snyk jq
-         sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Run Snyk scan script
+      - name: Run Snyk to check configuration files for security issues
+        # Snyk can be used to break the build when it detects security issues.
+        # In this case we want to upload the issues to GitHub Code Scanning
         continue-on-error: true
-        run: |
-            #!/bin/bash
-            OUTPUT_FILE="snyk.sarif"
-            > "$OUTPUT_FILE"
-
-            FILES=(
-                "./modules/azurefirewall/main.tf"
-                "./modules/azurefirewallpolicy/main.tf"
-                "./modules/azurefirewallrulecolgrp/main.tf"
-                "./modules/bastion/main.tf"
-                "./modules/publicip/main.tf"
-                "./modules/recoveryservicesvault/main.tf"
-                "./modules/resourcegroups/main.tf"
-                "./modules/routetables/main.tf"
-                "./modules/vm-linux/main.tf"
-                "./modules/vm-windows/main.tf"
-                "./modules/vnet/main.tf"
-                "./modules/vnet-peering/main.tf"
-            )
-
-            for file in "${FILES[@]}"; do
-                if [[ -f "$file" ]]; then
-                    echo "Scanning: $file"
-                    snyk iac test "$file" --sarif > temp.sarif
-                    if jq empty temp.sarif 2>/dev/null; then
-                        cat temp.sarif >> "$OUTPUT_FILE"
-                    else
-                        echo "Invalid JSON detected in the scan result of $file. Skipping."
-                    fi
-                else
-                    echo "Warning: File $file not found!"
-                fi
-            done
-
-            rm -f temp.sarif
-            echo "Scan completed. Results saved in $OUTPUT_FILE."
+        uses: snyk/actions/iac@14818c4695ecc4045f33c9cee9e795a788711ca4
         env:
-            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          # In order to use the Snyk Action you will need to have a Snyk API token.
+          # More details in https://github.com/snyk/actions#getting-your-snyk-token
+          # or you can signup for free at https://snyk.io/login
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+         file: main.tf
+         args: >
+          mkdir -p snyk-reports &&
+          for file in $(find modules -name "main.tf"); do
+              echo "Scanning $file..." &&
+              snyk iac test "$file" --sarif-file-output="snyk-reports/$(basename $file).sarif" || true;
+          done
 
-
+      - name: Merge SARIF files
+        run: |
+            echo '{"runs": [], "version": "2.1.0"}' > snyk.sarif
+            for f in snyk-reports/*.sarif; do
+              jq -s '.[0] * {"runs": (.[0].runs + .[1].runs)}' snyk.sarif "$f" > tmp.sarif && mv tmp.sarif snyk.sarif
+            done
+          
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:

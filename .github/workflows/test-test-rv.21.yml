@@ -2,7 +2,7 @@ name: test rv.2.1
 
 on:
   push:
-   # branches: [ "main" ]
+    # branches: [ "main" ]
   pull_request:
     # The branches below must be a subset of the branches above
     #branches: [ "main" ]
@@ -11,7 +11,6 @@ on:
 
 permissions:
   contents: read
-
 
 jobs:
   snyk:
@@ -25,7 +24,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Upload results to Github Code Scanning
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: snyk_sarif
 
@@ -37,7 +36,6 @@ jobs:
         with:
           file: ./modules/azurefirewall/main.tf
       - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: snyk.sarif
-          

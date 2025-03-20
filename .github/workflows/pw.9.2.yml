@@ -21,12 +21,10 @@ jobs:
       - name: Install OPA
         run: wget https://openpolicyagent.org/downloads/latest/opa_linux_amd64 -O opa && chmod +x opa && mv opa /usr/local/bin/
 
-      - name: Run Terraform Plan
-        run: |
-          terraform init -backend=false
+      - name: Run Terraform Init
+        run: terraform init -backend=false
+      - name: Terraform plan
           terraform plan -out=tfplan.binary
-          tfplan.binary -json > tfplan.json
-
 
       - name: Write out Terraform plan
         run: cat tfplan.json

@@ -1,0 +1,68 @@
+name: RV2.1 Snyk Infrastructure as Code
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '18 7 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  snyk:
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Run Snyk scan script
+        continue-on-error: true
+        run: |
+            #!/bin/bash
+            # Filen som skal inneholde resultatene
+            OUTPUT_FILE="snyk.sarif"
+
+            # Tøm filen før vi starter
+            > "$OUTPUT_FILE"
+
+            # Liste over Terraform-filer som skal skannes
+            FILES=(
+                "./modules/azurefirewall/main.tf"
+                "./modules/azurefirewallpolicy/main.tf"
+                "./modules/azurefirewallrulecolgrp/main.tf"
+                "./modules/bastion/main.tf"
+                "./modules/publicip/main.tf"
+                "./modules/recoveryservicesvault/main.tf"
+                "./modules/resourcegroups/main.tf"
+                "./modules/routetables/main.tf"
+                "./modules/vm-linux/main.tf"
+                "./modules/vm-windows/main.tf"
+                "./modules/vnet/main.tf"
+                "./modules/vnet-peering/main.tf"
+            )
+
+            # Kjør Snyk scan på hver fil og legg til resultatet i snyk.sarif
+            for file in "${FILES[@]}"; do
+                if [[ -f "$file" ]]; then
+                    echo "Scanning: $file"
+                    snyk iac test "$file" --sarif >> "$OUTPUT_FILE"
+                else
+                    echo "Advarsel: Filen $file finnes ikke!"
+                fi
+            done
+            
+            echo "Scan fullført. Resultatene er lagret i $OUTPUT_FILE"
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif

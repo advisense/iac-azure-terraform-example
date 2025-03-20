@@ -24,7 +24,7 @@ jobs:
       - name: Run Terraform Init
         run: terraform init -backend=false
       - name: Terraform plan
-          terraform plan -out=tfplan.binary
+        run: terraform plan -out=tfplan.binary
 
       - name: Write out Terraform plan
         run: cat tfplan.json

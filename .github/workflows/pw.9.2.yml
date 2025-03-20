@@ -5,9 +5,6 @@ on:
     branches:
       - andreas-pw.9.2
 
-jobs:
-  Setup-terraform:
-    runs-on: ubuntu-latest
 env:
   ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
   ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"

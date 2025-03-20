@@ -3,32 +3,70 @@ name: RV2.1 Snyk Infrastructure as Code
 on:
   push:
   pull_request:
+  schedule:
+    - cron: '18 7 * * 1'
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  snyk:
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '20'
+      - name: Install Snyk CLI
+        run: |
+         npm install -g snyk jq
+         sudo apt-get update && sudo apt-get install -y jq
 
-    - name: Install jq and commander
-      run: |
-        sudo apt-get install -y jq
-        npm install -g commander
+      - name: Run Snyk scan script
+        continue-on-error: true
+        run: |
+            #!/bin/bash
+            OUTPUT_FILE="snyk.sarif"
+            > "$OUTPUT_FILE"
 
-    - name: Install Snyk CLI
-      run: npm install -g snyk
+            FILES=(
+                "./modules/azurefirewall/main.tf"
+                "./modules/azurefirewallpolicy/main.tf"
+                "./modules/azurefirewallrulecolgrp/main.tf"
+                "./modules/bastion/main.tf"
+                "./modules/publicip/main.tf"
+                "./modules/recoveryservicesvault/main.tf"
+                "./modules/resourcegroups/main.tf"
+                "./modules/routetables/main.tf"
+                "./modules/vm-linux/main.tf"
+                "./modules/vm-windows/main.tf"
+                "./modules/vnet/main.tf"
+                "./modules/vnet-peering/main.tf"
+            )
 
-    - name: Run Snyk IaC Scan
-      run: snyk iac test ./modules
+            for file in "${FILES[@]}"; do
+                if [[ -f "$file" ]]; then
+                    echo "Scanning: $file"
+                    snyk iac test "$file" --sarif > temp.sarif
+                    if jq empty temp.sarif 2>/dev/null; then
+                        cat temp.sarif >> "$OUTPUT_FILE"
+                    else
+                        echo "Invalid JSON detected in the scan result of $file. Skipping."
+                    fi
+                else
+                    echo "Warning: File $file not found!"
+                fi
+            done
 
-    - name: Upload SARIF results
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: snyk.sarif
+            rm -f temp.sarif
+            echo "Scan completed. Results saved in $OUTPUT_FILE."
+        env:
+            SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk.sarif

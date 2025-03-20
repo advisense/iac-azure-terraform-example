@@ -60,14 +60,7 @@ jobs:
       id: tf-plan
       run: |
         export exitcode=0
-        terraform plan -detailed-exitcode -no-color -out tfplan || export exitcode=$?
-
-        echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
-        
-        if [ $exitcode -eq 1 ]; then
-          echo Terraform Plan Failed!
-          exit 1
-        else 
-          exit 0
-        fi
+        terraform plan -out=tfplan.binary
+        terraform show -json tfplan.binary > tfplan.json
+        cat tfplan.json
         

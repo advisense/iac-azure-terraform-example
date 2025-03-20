@@ -5,11 +5,13 @@ on:
     branches:
       - andreas-pw.9.2
 
+#Special permissions required for OIDC authentication
 permissions:
   id-token: write
   contents: read
   pull-requests: write
 
+#These environment variables are used by the terraform azure provider to setup OIDD authenticate. 
 env:
   ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
   ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
@@ -67,3 +69,5 @@ jobs:
           exit 1
         else 
           exit 0
+        fi
+        

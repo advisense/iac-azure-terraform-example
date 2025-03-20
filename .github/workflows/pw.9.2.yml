@@ -1,6 +1,9 @@
 name: Terraform OPA Security Scan
 
-on: [push, pull_request]
+on: 
+  push:
+    branches:
+      - andreas-pw.9.2
 
 jobs:
   security-scan:

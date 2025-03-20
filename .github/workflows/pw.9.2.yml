@@ -5,6 +5,11 @@ on:
     branches:
       - andreas-pw.9.2
 
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
 env:
   ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
   ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"

@@ -1,4 +1,4 @@
-name: Terraform OPA Security Scan
+name: PW.9.2
 
 on: 
   push:
@@ -6,8 +6,20 @@ on:
       - andreas-pw.9.2
 
 jobs:
+  Setup-terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.11
   security-scan:
     runs-on: ubuntu-latest
+    needs: Setup-terraform
 
     steps:
       - name: Checkout Code

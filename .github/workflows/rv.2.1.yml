@@ -2,71 +2,34 @@ name: RV2.1 Snyk Infrastructure as Code
 
 on:
   push:
+    branches:
+      - main
   pull_request:
-  schedule:
-    - cron: '18 7 * * 1'
-
-permissions:
-  contents: read
+    branches:
+      - main
 
 jobs:
-  snyk:
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Install Snyk CLI
-        run: npm install -g snyk jq
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
 
-      - name: Run Snyk scan script
-        continue-on-error: true
-        run: |
-            #!/bin/bash
-            # Filen som skal inneholde resultatene
-            OUTPUT_FILE="snyk.sarif"
+    - name: Install jq and commander
+      run: |
+        sudo apt-get install -y jq
+        npm install -g commander
 
-            # Tøm filen før vi starter
-            > "$OUTPUT_FILE"
+    - name: Run Snyk IaC Scan
+      run: snyk iac test ./modules
 
-            # Liste over Terraform-filer som skal skannes
-            FILES=(
-                "./modules/azurefirewall/main.tf"
-                "./modules/azurefirewallpolicy/main.tf"
-                "./modules/azurefirewallrulecolgrp/main.tf"
-                "./modules/bastion/main.tf"
-                "./modules/publicip/main.tf"
-                "./modules/recoveryservicesvault/main.tf"
-                "./modules/resourcegroups/main.tf"
-                "./modules/routetables/main.tf"
-                "./modules/vm-linux/main.tf"
-                "./modules/vm-windows/main.tf"
-                "./modules/vnet/main.tf"
-                "./modules/vnet-peering/main.tf"
-            )
-
-            # Kjør Snyk scan på hver fil og legg til resultatet i snyk.sarif
-            for file in "${FILES[@]}"; do
-                if [[ -f "$file" ]]; then
-                    echo "Scanning: $file"
-                    result=$(snyk iac test "$file" --sarif)
-                    if echo "$result" | jq empty; then
-                        echo "$result" >> "$OUTPUT_FILE"
-                    else
-                        echo "Invalid JSON detected in the scan result of $file"
-                    fi
-                else
-                    echo "Advarsel: Filen $file finnes ikke!"
-                fi
-            done
-            echo "Scan fullført. Resultatene er lagret i $OUTPUT_FILE"
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: snyk.sarif
+    - name: Upload SARIF results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: snyk.sarif

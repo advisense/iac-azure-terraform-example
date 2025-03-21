@@ -1,4 +1,6 @@
-name: testtest
+# This workflow is an extension of RV.2.1.yml and an attempt to run multiple jobs simultaneously to achieve vulnerability scanning using Snyk on all modules within a single workflow.
+# Further work involves testing this to ensure it functions as intended, as it has currently reached its limit for Snyk tests this month.
+name: RV.2.1 - MATRIX - Snyk
 on:
   push:
     #branches: [ "main" ]

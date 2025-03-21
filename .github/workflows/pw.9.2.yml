@@ -75,6 +75,7 @@ jobs:
     - name: Write out json file
       run: |
         cat tfplan.json
+        ls -la
  
     - name: Verify OPA Installation
       run: |

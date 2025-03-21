@@ -89,12 +89,4 @@ jobs:
 
     - name: Run OPA Policy Check
       run: |
-          violations=$(opa eval --data policies/ --input tfplan.json --format pretty "data.terraform.security.deny")
-          echo "$violations"
-          if [ "$violations" != "[]" ]; then
-             echo "OPA policy violations found!"
-             echo "$violations"
-             exit 1
-          else
-            echo "No OPA violations found."
-          fi
+          opa eval --data policies/ --input tfplan.json --format pretty

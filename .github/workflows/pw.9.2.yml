@@ -89,4 +89,4 @@ jobs:
 
     - name: Run OPA Policy Check
       run: |
-          opa eval --data policies/ --input tfplan.json --format pretty
+          opa eval --data policies/ --input tfplan.json --format pretty "data.terraform.analysis.deny"

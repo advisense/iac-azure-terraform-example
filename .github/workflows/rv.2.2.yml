@@ -125,10 +125,14 @@ jobs:
           cat detailed_advisory.md && \
           echo "Checkov Summary:" && \
           cat checkov-summary.md && \
+          if [ ! -f detailed_advisory.md ]; then
+            echo "Error: detailed_advisory.md not found!";
+            exit 1;
+          fi && \
           gh issue create --title "Security advisory: Critical vulnerabilities discovered" --body "$(cat detailed_advisory.md)\n\n$(cat checkov-summary.md)" --label "security"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the built-in GITHUB_TOKEN
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the built-in GITHUB_TOKEN to interact with GitHub API
+          
       # Step 11: Update documentation with risk assessment
       - name: Update documentation with risk assessment
         run: |

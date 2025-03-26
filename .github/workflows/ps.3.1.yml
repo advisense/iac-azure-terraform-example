@@ -1,0 +1,43 @@
+name: ps.3.1 
+
+on:
+    release:
+        types: [published]
+
+jobs: 
+    archive: 
+        runs-on: ubuntu-latest
+        
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+      
+            - name: Calculate SHA256 checksum
+              run: sha256sum release.tar.gz > release.sha256
+      
+            - name: Sign the release
+              run: gpg --batch --yes --detach-sign --armor --output release.sig release.tar.gz
+      
+            - name: Upload release assets
+              uses: softprops/action-gh-release@v2
+              with:
+                files: |
+                  release.tar.gz
+                  release.sha256
+                  release.sig
+      
+            - name: Create archive report
+              run: |
+                echo "## Archivereport" > report.md
+                echo "**Date:** $(date)" >> report.md
+                echo "**SHA256:** $(cat release.sha256)" >> report.md
+                echo "**Signature:** Added" >> report.md
+                echo "**Status:** SUCESS" >> report.md
+      
+            - name: Publish archive report as an issue
+              uses: peter-evans/create-issue-from-file@v5
+              with:
+                title: "Automatic archiving report for release${{ github.event.release.tag_name }}"
+                content-filepath: report.md
+                labels: archive, security
+    

@@ -28,18 +28,10 @@ jobs:
           curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
           tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz
           install terrascan /usr/local/bin && rm terrascan
-          terrascan scan -p ./iac-azure-terraform-example/
-
-  vulnerabilities-in-dependencies:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Check for vulnerabilities in dependencies
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: "dependency-scanning"
+      - name: Initialize Terrascan
+        run: terrascan init
+      - name: Run vulnerability scan
+        run: terrascan scan -d .
 
   ggshield-scan:
     name: GitGuardian scan
@@ -48,7 +40,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # fetch all history so multiple commits can be scanned
+          fetch-depth: 0 # Fetch all history so multiple commits can be scanned
+
+      - name: Authenticate ggshield
+        env:
+          GITGUARDIAN_TOKEN: ${{ secrets.GITGUARDIAN_TOKEN }}
+        run: ggshield auth login --api-key $GITGUARDIAN_TOKEN
+
       - name: GitGuardian scan
         uses: GitGuardian/ggshield/actions/secret@v1.37.0
         env:

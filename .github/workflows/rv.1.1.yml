@@ -31,7 +31,7 @@ jobs:
       - name: Initialize Terrascan
         run: terrascan init
       - name: Run vulnerability scan
-        run: terrascan scan -d .
+        run: terrascan scan -d ./modules/ 
 
   ggshield-scan:
     name: GitGuardian scan

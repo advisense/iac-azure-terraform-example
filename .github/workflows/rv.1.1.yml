@@ -2,15 +2,14 @@ name: RV.1.1
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * *'   # Schedule the workflow to run daily at midnight
   push:
     branches:
       - annSophie-rv.1.1
-  workflow_dispatch:
+  workflow_dispatch:      # Allow manual triggering of the workflow
 
 permissions:
-  security-events: write
-  contents: read
+  contents: read          # Grant read permissions for repository contents
 
 jobs:
   terrascan:
@@ -23,11 +22,14 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.11.3
+      # Install Terrascan 
       - name: Run vulnerability scan
         run: |
           curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E "https://.+?_Linux_x86_64.tar.gz")" > terrascan.tar.gz
           tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz
           install terrascan /usr/local/bin && rm terrascan
+
+      # Initialize and run terrascan to scan the specified directory for vulnerabilities
       - name: Initialize Terrascan
         run: terrascan init
       - name: Run vulnerability scan
@@ -39,8 +41,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
+      # Use GitGuardian to scan for secrets
       - name: GitGuardian scan
         uses: GitGuardian/ggshield/actions/secret@v1.37.0
+        # Use the GitGuardian token stored in GitHub Secrets
         env:
           GITGUARDIAN_TOKEN: ${{ secrets.GITGUARDIAN_TOKEN }}

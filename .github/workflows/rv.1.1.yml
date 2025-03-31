@@ -51,7 +51,7 @@ jobs:
       - name: Authenticate ggshield
         env:
           GITGUARDIAN_TOKEN: ${{ secrets.GITGUARDIAN_TOKEN }}
-        run: ggshield auth login --api-key $GITGUARDIAN_TOKEN
+        run: ggshield auth login
 
       - name: GitGuardian scan
         uses: GitGuardian/ggshield/actions/secret@v1.37.0

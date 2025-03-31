@@ -3,9 +3,8 @@ name: RV.1.1
 on:
   schedule:
     - cron: '0 0 * * *'   # Schedule the workflow to run daily at midnight
-  push:
-    branches:
-      - annSophie-rv.1.1
+  push:                   # Trigger the workflow whenever there is a push to the repository
+  pull_request:           # Trigger the workflow whenever there is a pull request to the repository
   workflow_dispatch:      # Allow manual triggering of the workflow
 
 permissions:

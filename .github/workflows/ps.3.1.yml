@@ -12,6 +12,10 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
       
+            - name: Create release tarball
+              run: |
+                tar -czf release.tar.gz .
+  
             - name: Calculate SHA256 checksum
               run: sha256sum release.tar.gz > release.sha256
       
@@ -32,7 +36,7 @@ jobs:
                 echo "**Date:** $(date)" >> report.md
                 echo "**SHA256:** $(cat release.sha256)" >> report.md
                 echo "**Signature:** Added" >> report.md
-                echo "**Status:** SUCESS" >> report.md
+                echo "**Status:** SUCCESS" >> report.md
       
             - name: Publish archive report as an issue
               uses: peter-evans/create-issue-from-file@v5
@@ -40,4 +44,3 @@ jobs:
                 title: "Automatic archiving report for release${{ github.event.release.tag_name }}"
                 content-filepath: report.md
                 labels: archive, security
-    

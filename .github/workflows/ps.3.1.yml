@@ -12,11 +12,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Debug: Check current files
+      - name: "Debug: List workspace files before packaging"
+        run: ls -lah
+
       # Create a compressed archive of the source code
       - name: Package release
         run: tar -czvf release.tar.gz src/
 
-      # Verify that the archive file was created
+      # Debug: Check if the tarball was created
       - name: Verify tarball creation
         run: |
           if [ ! -f release.tar.gz ]; then
@@ -30,7 +34,7 @@ jobs:
       - name: Calculate SHA256 checksum
         run: sha256sum release.tar.gz > release.sha256
 
-      # Verify that the checksum file was created
+      # Verify checksum file
       - name: Verify checksum file
         run: |
           if [ ! -f release.sha256 ]; then
@@ -39,43 +43,3 @@ jobs:
           fi
           echo "release.sha256 exists."
           cat release.sha256
-
-      # Sign the release archive with GPG
-      - name: Sign the release
-        run: gpg --batch --yes --detach-sign --armor --output release.sig release.tar.gz
-
-      # Verify that the signature file was created
-      - name: Verify signature file
-        run: |
-          if [ ! -f release.sig ]; then
-            echo "Error: release.sig was not created!"
-            exit 1
-          fi
-          echo "release.sig exists."
-          ls -lah release.sig
-
-      # Upload the release files to GitHub Releases
-      - name: Upload release assets
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            release.tar.gz
-            release.sha256
-            release.sig
-
-      # Create an archive report with relevant information
-      - name: Create archive report
-        run: |
-          echo "## Archive Report" > report.md
-          echo "**Date:** $(date)" >> report.md
-          echo "**SHA256:** $(cat release.sha256)" >> report.md
-          echo "**Signature:** Added" >> report.md
-          echo "**Status:** SUCCESS" >> report.md
-
-      # Publish the archive report as an issue in the repository
-      - name: Publish archive report as an issue
-        uses: peter-evans/create-issue-from-file@v5
-        with:
-          title: "Archive report for release ${{ github.event.release.tag_name }}"
-          content-filepath: report.md
-          labels: archive, security

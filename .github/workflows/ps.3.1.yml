@@ -1,13 +1,13 @@
-name: ps.3.1 
+name: ps.3.1
 
 on:
   release:
     types: [published]
 
-jobs: 
-  archive: 
+jobs:
+  archive:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,30 +16,51 @@ jobs:
       - name: "Debug: List workspace files before packaging"
         run: ls -lah
 
-      # Create a compressed archive of the source code
+      # Create a temporary folder and copy files for archiving
+      - name: Create a temporary folder and copy files
+        run: |
+          mkdir -p temp_folder
+          # Hvis du har spesifikke filer eller mapper du vil arkivere, kan du bruke en annen sti
+          cp -r * temp_folder/
+
+      # Create a compressed archive of the source code in the temporary folder
       - name: Package release
-        run: tar -czvf release.tar.gz src/
+        run: tar -czvf temp_folder/release.tar.gz -C temp_folder .
 
       # Debug: Check if the tarball was created
       - name: Verify tarball creation
         run: |
-          if [ ! -f release.tar.gz ]; then
+          if [ ! -f temp_folder/release.tar.gz ]; then
             echo "Error: release.tar.gz was not created!"
             exit 1
           fi
           echo "release.tar.gz exists."
-          ls -lah release.tar.gz
+          ls -lah temp_folder/release.tar.gz
 
       # Generate SHA256 checksum
       - name: Calculate SHA256 checksum
-        run: sha256sum release.tar.gz > release.sha256
+        run: sha256sum temp_folder/release.tar.gz > temp_folder/release.sha256
 
       # Verify checksum file
       - name: Verify checksum file
         run: |
-          if [ ! -f release.sha256 ]; then
+          if [ ! -f temp_folder/release.sha256 ]; then
             echo "Error: release.sha256 was not created!"
             exit 1
           fi
           echo "release.sha256 exists."
-          cat release.sha256
+          cat temp_folder/release.sha256
+
+      # Upload the archive and checksum as an artifact
+      - name: Upload the release artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-archive
+          path: temp_folder/release.tar.gz
+
+      # Upload the checksum file as an artifact
+      - name: Upload checksum artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-checksum
+          path: temp_folder/release.sha256

@@ -1,81 +1,48 @@
-name: RV.2.2
+name: Create and Upload Release with Git Archive
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-  schedule:
-    - cron: '0 0 * * 1' 
-  workflow_dispatch: 
+  release:
+    types: [published]
 
 jobs:
-  security-scan:
-    name: Security Scan
+  release:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Install Trivy
-        uses: aquasecurity/setup-trivy@v0.2.2
-        with:
-          version: 'v0.57.1'
+      # Create a compressed zip archive using git archive
+      - name: Create release zip
+        run: git archive --output=release.zip HEAD
 
-      - name: Run Trivy scan
-        id: trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'docker.io/library/alpine:3.10'
-          format: json
-          output: trivy-report.json
-          severity: HIGH,CRITICAL
-          vuln-type: os,library
-          ignore-unfixed: false
-        continue-on-error: true
-
-      - name: Run Checkov scan
+      # Debug: Check if the zip file was created
+      - name: Verify zip file creation
         run: |
-          pip install checkov
-          checkov -d . --framework terraform --output json > checkov-report.json
-          cat checkov-report.json || echo "Checkov report not found!"
-        continue-on-error: true
-
-      - name: Ensure reports exist
-        run: |
-          if [ ! -f trivy-report.json ]; then
-            echo "Error: trivy-report.json not found!"
+          if [ ! -f release.zip ]; then
+            echo "Error: release.zip was not created!"
             exit 1
           fi
-          if [ ! -f checkov-report.json ]; then
-            echo "Error: checkov-report.json not found!"
+          echo "release.zip exists."
+          ls -lah release.zip
+
+      # Generate SHA256 checksum
+      - name: Generate SHA256 checksum
+        run: sha256sum release.zip > release.zip.sha256
+
+      # Verify checksum file
+      - name: Verify checksum file
+        run: |
+          if [ ! -f release.zip.sha256 ]; then
+            echo "Error: release.zip.sha256 was not created!"
             exit 1
           fi
+          echo "release.zip.sha256 exists."
+          cat release.zip.sha256
 
-      - name: Generate Security Advisory
-        run: |
-          node generate_advisory.js trivy-report.json checkov-report.json
-          if [ ! -f detailed_advisory.md ]; then
-            echo "Error: detailed_advisory.md not found!"
-            exit 1
-          fi
-          cat detailed_advisory.md
-
-      - name: Create GitHub Issue
-        run: |
-          gh issue create --title "Security advisory: Critical vulnerabilities found" \
-            --body "$(cat detailed_advisory.md)" --label "security"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload reports
-        uses: actions/upload-artifact@v4
+      # Upload release zip and checksum as artifacts
+      - name: Upload release and checksum as artifact
+        uses: actions/upload-artifact@v2
         with:
-          name: security-reports
-          path: |
-            trivy-report.json
-            checkov-report.json
-            detailed_advisory.md
+          name: release-artifact
+          path: release.zip, release.zip.sha256

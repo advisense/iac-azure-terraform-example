@@ -1,23 +1,23 @@
-name: Create and Upload Release with Git Archive
+name: Create and Upload Release
 
 on:
   release:
-    types: [published]
+    types: [published]  # Kjør når en release blir opprettet
 
 jobs:
   release:
     runs-on: ubuntu-latest
 
-    
     steps:
+      # Steg 1: Sjekk ut koden
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Create a compressed zip archive using git archive
+      # Steg 2: Lag en zip-fil med innholdet i repositoryet
       - name: Create release zip
-        run: git archive --output=release.zip HEAD
+        run: git archive --output=release.zip HEAD  # Lag zip-fil fra HEAD (nåværende commit)
 
-      # Debug: Check if the zip file was created
+      # Steg 3: Verifiser at zip-filen ble laget
       - name: Verify zip file creation
         run: |
           if [ ! -f release.zip ]; then
@@ -27,23 +27,10 @@ jobs:
           echo "release.zip exists."
           ls -lah release.zip
 
-      # Generate SHA256 checksum
-      - name: Generate SHA256 checksum
-        run: sha256sum release.zip > release.zip.sha256
-
-      # Verify checksum file
-      - name: Verify checksum file
-        run: |
-          if [ ! -f release.zip.sha256 ]; then
-            echo "Error: release.zip.sha256 was not created!"
-            exit 1
-          fi
-          echo "release.zip.sha256 exists."
-          cat release.zip.sha256
-
-      # Upload release zip and checksum as artifacts
-      - name: Upload release and checksum as artifact
-        uses: actions/upload-artifact@v2
+      # Steg 4: Opprett en GitHub Release og last opp zip-filen som asset
+      - name: Create GitHub Release and upload zip
+        uses: softprops/action-gh-release@v1
         with:
-          name: release-artifact
-          path: release.zip, release.zip.sha256
+          files: release.zip  # Last opp release.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub-token for å autentisere mot GitHub API

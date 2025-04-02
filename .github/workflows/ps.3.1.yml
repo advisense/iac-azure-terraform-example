@@ -2,65 +2,35 @@ name: ps.3.1
 
 on:
   release:
-    types: [published]
+    types: [published]  # Kjør når en release blir opprettet
 
 jobs:
-  archive:
+  release:
     runs-on: ubuntu-latest
 
     steps:
+      # Steg 1: Sjekk ut koden
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
-      # Debug: Check current files
-      - name: "Debug: List workspace files before packaging"
-        run: ls -lah
+      # Steg 2: Lag en zip-fil med innholdet i repositoryet
+      - name: Create release zip
+        run: git archive --output=release.zip HEAD  # Lag zip-fil fra HEAD (nåværende commit)
 
-      # Create a temporary folder and copy files for archiving
-      - name: Create a temporary folder and copy files
+      # Steg 3: Verifiser at zip-filen ble laget
+      - name: Verify zip file creation
         run: |
-          mkdir -p temp_folder
-          # Hvis du har spesifikke filer eller mapper du vil arkivere, kan du bruke en annen sti
-          cp -r * temp_folder/
-
-      # Create a compressed archive of the source code in the temporary folder
-      - name: Package release
-        run: tar -czvf temp_folder/release.tar.gz -C temp_folder .
-
-      # Debug: Check if the tarball was created
-      - name: Verify tarball creation
-        run: |
-          if [ ! -f temp_folder/release.tar.gz ]; then
-            echo "Error: release.tar.gz was not created!"
+          if [ ! -f release.zip ]; then
+            echo "Error: release.zip was not created!"
             exit 1
           fi
-          echo "release.tar.gz exists."
-          ls -lah temp_folder/release.tar.gz
+          echo "release.zip exists."
+          ls -lah release.zip
 
-      # Generate SHA256 checksum
-      - name: Calculate SHA256 checksum
-        run: sha256sum temp_folder/release.tar.gz > temp_folder/release.sha256
-
-      # Verify checksum file
-      - name: Verify checksum file
-        run: |
-          if [ ! -f temp_folder/release.sha256 ]; then
-            echo "Error: release.sha256 was not created!"
-            exit 1
-          fi
-          echo "release.sha256 exists."
-          cat temp_folder/release.sha256
-
-      # Upload the archive and checksum as an artifact
-      - name: Upload the release artifact
-        uses: actions/upload-artifact@v2
+      # Steg 4: Opprett en GitHub Release og last opp zip-filen som asset
+      - name: Create GitHub Release and upload zip
+        uses: softprops/action-gh-release@v1
         with:
-          name: release-archive
-          path: temp_folder/release.tar.gz
-
-      # Upload the checksum file as an artifact
-      - name: Upload checksum artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: release-checksum
-          path: temp_folder/release.sha256
+          files: release.zip  # Last opp release.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub-token for å autentisere mot GitHub API

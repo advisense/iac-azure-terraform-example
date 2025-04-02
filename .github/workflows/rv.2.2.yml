@@ -1,36 +1,81 @@
-name: Create and Upload Release
+name: RV.2.2
 
 on:
-  release:
-    types: [published]  # Kjør når en release blir opprettet
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * 1' 
+  workflow_dispatch: 
 
 jobs:
-  release:
+  security-scan:
+    name: Security Scan
     runs-on: ubuntu-latest
 
     steps:
-      # Steg 1: Sjekk ut koden
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Steg 2: Lag en zip-fil med innholdet i repositoryet
-      - name: Create release zip
-        run: git archive --output=release.zip HEAD  # Lag zip-fil fra HEAD (nåværende commit)
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@v0.2.2
+        with:
+          version: 'v0.57.1'
 
-      # Steg 3: Verifiser at zip-filen ble laget
-      - name: Verify zip file creation
+      - name: Run Trivy scan
+        id: trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'docker.io/library/alpine:3.10'
+          format: json
+          output: trivy-report.json
+          severity: HIGH,CRITICAL
+          vuln-type: os,library
+          ignore-unfixed: false
+        continue-on-error: true
+
+      - name: Run Checkov scan
         run: |
-          if [ ! -f release.zip ]; then
-            echo "Error: release.zip was not created!"
+          pip install checkov
+          checkov -d . --framework terraform --output json > checkov-report.json
+          cat checkov-report.json || echo "Checkov report not found!"
+        continue-on-error: true
+
+      - name: Ensure reports exist
+        run: |
+          if [ ! -f trivy-report.json ]; then
+            echo "Error: trivy-report.json not found!"
             exit 1
           fi
-          echo "release.zip exists."
-          ls -lah release.zip
+          if [ ! -f checkov-report.json ]; then
+            echo "Error: checkov-report.json not found!"
+            exit 1
+          fi
 
-      # Steg 4: Opprett en GitHub Release og last opp zip-filen som asset
-      - name: Create GitHub Release and upload zip
-        uses: softprops/action-gh-release@v1
-        with:
-          files: release.zip  # Last opp release.zip
+      - name: Generate Security Advisory
+        run: |
+          node generate_advisory.js trivy-report.json checkov-report.json
+          if [ ! -f detailed_advisory.md ]; then
+            echo "Error: detailed_advisory.md not found!"
+            exit 1
+          fi
+          cat detailed_advisory.md
+
+      - name: Create GitHub Issue
+        run: |
+          gh issue create --title "Security advisory: Critical vulnerabilities found" \
+            --body "$(cat detailed_advisory.md)" --label "security"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub-token for å autentisere mot GitHub API
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            trivy-report.json
+            checkov-report.json
+            detailed_advisory.md

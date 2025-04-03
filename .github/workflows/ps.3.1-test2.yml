@@ -21,25 +21,19 @@ jobs:
     - name: Generate sha checksum 
       run: sha256sum iac-azure-terraform-example.zip > iac-azure-terraform-example.zip.sha256sum
 
-    - name: Upload backup and checksum to release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        UPLOAD_URL_ZIP=$(curl -s \
-          -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Content-Type: application/zip" \
-          --data-binary @iac-azure-terraform-example.zip \
-          "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}/assets?name=iac-azure-terraform-example.zip" \
-          | jq -r '.browser_download_url')
+    - name: Upload backup and checksum as artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: backup-zip
+        path: iac-azure-terraform-example.zip
 
-        UPLOAD_URL_SHA256=$(curl -s \
-          -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Content-Type: text/plain" \
-          --data-binary @iac-azure-terraform-example.zip.sha256sum \
-          "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}/assets?name=iac-azure-terraform-example.zip.sha256sum" \
-          | jq -r '.browser_download_url')
+    - name: Upload checksum as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: backup-sha256
+        path: iac-azure-terraform-example.zip.sha256sum
 
-    - name: Create GitHub Issue with backup and checksum 
+    - name: Create GitHub Issue with backup and checksum links
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: | 
@@ -48,9 +42,9 @@ jobs:
 
         ## Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)
         ### Backup file
-        iac-azure-terraform-example.zip
+        Download backup-zip
         ### Checksum file
-        iac-azure-terraform-example.zip.sha256sum
+        Download backup-sha256
         ### Details
         - Repository: ${{ github.repository }}
         - Release: ${{ github.event.release.tag_name }}
@@ -58,4 +52,4 @@ jobs:
 
         EOF
                 )
-                gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"
+                gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup" --assignee ${{ github.actor }} --repo ${{ github.repository }}

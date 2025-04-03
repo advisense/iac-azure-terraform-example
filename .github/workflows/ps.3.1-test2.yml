@@ -33,29 +33,35 @@ jobs:
         name: backup-sha256
         path: iac-azure-terraform-example.zip.sha256sum
 
+    - name: Get artifact download URLs
+      id: get-artifacts
+      run: |
+        ARTIFACTS_URL="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+        RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" $ARTIFACTS_URL)
+        BACKUP_URL=$(echo $RESPONSE | jq -r '.artifacts[] | select(.name=="backup-zip") | .archive_download_url')
+        SHA256_URL=$(echo $RESPONSE | jq -r '.artifacts[] | select(.name=="backup-sha256") | .archive_download_url')
+        echo "BACKUP_URL=$BACKUP_URL" >> $GITHUB_ENV
+        echo "SHA256_URL=$SHA256_URL" >> $GITHUB_ENV
+
     - name: Create GitHub Issue with backup and checksum links
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BACKUP_URL: ${{ env.BACKUP_URL }}
+        SHA256_URL: ${{ env.SHA256_URL }}
       run: | 
         ISSUE_TITLE="Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)"
-        RUN_ID=${{ github.run_id }}
-        REPO=${{ github.repository }}
-
         ISSUE_BODY=$(cat <<EOF
 
         ## Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)
-        
-        ### Backup file  
-        [Download backup-zip](https://github.com/$REPO/actions/runs/$RUN_ID/artifacts)
-        
-        ### Checksum file  
-        [Download backup-sha256](https://github.com/$REPO/actions/runs/$RUN_ID/artifacts)
-        
-        ### Details  
-        - **Repository:** ${{ github.repository }}  
-        - **Release:** ${{ github.event.release.tag_name }}  
-        - **Date:** $(date)  
+        ### Backup file
+        Download backup-zip
+        ### Checksum file
+        Download backup-sha256
+        ### Details
+        - Repository: ${{ github.repository }}
+        - Release: ${{ github.event.release.tag_name }}
+        - Date: $(date)
 
         EOF
-        )
-        gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"
+                )
+                gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"

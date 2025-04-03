@@ -10,7 +10,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Create backup of repository
       run: | 
@@ -22,13 +22,13 @@ jobs:
       run: sha256sum iac-azure-terraform-example.zip > iac-azure-terraform-example.zip.sha256sum
 
     - name: Upload backup and checksum as artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: backup-zip
         path: iac-azure-terraform-example.zip
 
     - name: Upload checksum as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: backup-sha256
         path: iac-azure-terraform-example.zip.sha256sum
@@ -54,4 +54,3 @@ jobs:
                 )
                 gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"
 
-                

@@ -1,36 +1,30 @@
-name: ps.3.1
+name: Backup Repository
 
 on:
   release:
-    types: [published]  # Kjør når en release blir opprettet
+    types: [published]
 
 jobs:
-  release:
+  backup:
     runs-on: ubuntu-latest
 
     steps:
-      # Steg 1: Sjekk ut koden
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      # Steg 2: Lag en zip-fil med innholdet i repositoryet
-      - name: Create release zip
-        run: git archive --output=release.zip HEAD  # Lag zip-fil fra HEAD (nåværende commit)
+    - name: Create backup archive
+      run: |
+        tar -czf backup-${{ github.ref_name }}.tar.gz .
 
-      # Steg 3: Verifiser at zip-filen ble laget
-      - name: Verify zip file creation
-        run: |
-          if [ ! -f release.zip ]; then
-            echo "Error: release.zip was not created!"
-            exit 1
-          fi
-          echo "release.zip exists."
-          ls -lah release.zip
+    - name: Upload backup to remote server
+      env:
+        REMOTE_SERVER: ${{ secrets.REMOTE_SERVER }}
+        REMOTE_USER: ${{ secrets.REMOTE_USER }}
+        REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
+      run: |
+        scp backup-${{ github.ref_name }}.tar.gz $REMOTE_USER@$REMOTE_SERVER:$REMOTE_PATH
 
-      # Steg 4: Opprett en GitHub Release og last opp zip-filen som asset
-      - name: Create GitHub Release and upload zip
-        uses: softprops/action-gh-release@v1
-        with:
-          files: release.zip  # Last opp release.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub-token for å autentisere mot GitHub API
+    - name: Verify integrity
+      run: |
+        sha256sum backup-${{ github.ref_name }}.tar.gz > backup-${{ github.ref_name }}.sha256
+        scp backup-${{ github.ref_name }}.sha256 $REMOTE_USER@$REMOTE_SERVER:$REMOTE_PATH

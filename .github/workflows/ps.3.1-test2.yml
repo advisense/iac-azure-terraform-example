@@ -22,13 +22,16 @@ jobs:
       run: sha256sum iac-azure-terraform-example.zip > iac-azure-terraform-example.zip.sha256sum
 
     - name: Upload backup and checksum as artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
+
+
       with:
         name: backup-zip
         path: iac-azure-terraform-example.zip
 
     - name: Upload checksum as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
+
       with:
         name: backup-sha256
         path: iac-azure-terraform-example.zip.sha256sum

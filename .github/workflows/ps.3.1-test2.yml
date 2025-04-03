@@ -1,46 +1,61 @@
-name: ps.3.1-test2 
+name: ps.3.1-test2
 
 on:
   release:
     types: [published]
 
 jobs:
-    backup:
-        runs-on: ubuntu-latest
-    
-        steps:
-          - name: Checkout repository
-            uses: actions/checkout@v2
-    
-          - name: Create backup of repository
-            run: | 
-                git clone --mirror https://github.com/advisense/iac-azure-terraform-example.git 
-                sudo apt-get install zip 
-                zip iac-azure-terraform-example.zip -r iac-azure-terraform-example.git 
+  backup:
+    runs-on: ubuntu-latest
 
-          - name: Generate sha checksum 
-            run: sha256sum iac-azure-terraform-example.zip > iac-azure-terraform-example.zip.sha256sum
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-          - name: Create Github Issue with backup and checksum 
-            env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            run: | 
-                gh issue create --title "Backup of repository" --body "Backup of repository with sha256sum checksum" --label "backup" --assignee ${{ github.actor }} --body-file iac-azure-terraform-example.zip.sha256sum
-                ISSUE_TITLE="Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)"
-                ISSUE_BODY=$(cat <<EOF 
+    - name: Create backup of repository
+      run: | 
+        git clone --mirror https://github.com/advisense/iac-azure-terraform-example.git 
+        sudo apt-get install zip 
+        zip iac-azure-terraform-example.zip -r iac-azure-terraform-example.git 
 
-                ## Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)
-                ### Backup file 
-                \'iac-azure-terraform-example.zip\'
-                ### Checksum file
-                \'\'\'
-                $(cat iac-azure-terraform-example.zip.sha256sum)
-                \'\'\'
-                ### Details 
-                - Repository: ${{ github.repository }}
-                - Release: ${{ github.event.release.tag_name }}
-                - Date: $(date)
-               
-                EOF
-                ) 
+    - name: Generate sha checksum 
+      run: sha256sum iac-azure-terraform-example.zip > iac-azure-terraform-example.zip.sha256sum
+
+    - name: Upload backup and checksum to release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        UPLOAD_URL_ZIP=$(curl -s \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Content-Type: application/zip" \
+          --data-binary @iac-azure-terraform-example.zip \
+          "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}/assets?name=iac-azure-terraform-example.zip" \
+          | jq -r '.browser_download_url')
+
+        UPLOAD_URL_SHA256=$(curl -s \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Content-Type: text/plain" \
+          --data-binary @iac-azure-terraform-example.zip.sha256sum \
+          "https://uploads.github.com/repos/${{ github.repository }}/releases/${{ github.event.release.id }}/assets?name=iac-azure-terraform-example.zip.sha256sum" \
+          | jq -r '.browser_download_url')
+
+    - name: Create GitHub Issue with backup and checksum 
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: | 
+        ISSUE_TITLE="Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)"
+        ISSUE_BODY=$(cat <<EOF
+
+        ## Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)
+        ### Backup file
+        iac-azure-terraform-example.zip
+        ### Checksum file
+        iac-azure-terraform-example.zip.sha256sum
+        ### Details
+        - Repository: ${{ github.repository }}
+        - Release: ${{ github.event.release.tag_name }}
+        - Date: $(date)
+
+        EOF
+                )
                 gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"

@@ -1,4 +1,4 @@
-name: ps.3.1 
+name: ps.3.1-test2 
 
 on:
   release:
@@ -44,4 +44,3 @@ jobs:
                 EOF
                 ) 
                 gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"
-                

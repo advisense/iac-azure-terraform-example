@@ -1,0 +1,47 @@
+name: ps.3.1 
+
+on:
+  release:
+    types: [published]
+
+jobs:
+    backup:
+        runs-on: ubuntu-latest
+    
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v2
+    
+          - name: Create backup of repository
+            run: | 
+                git clone --mirror https://github.com/advisense/iac-azure-terraform-example.git 
+                sudo apt-get install zip 
+                zip iac-azure-terraform-example.zip -r iac-azure-terraform-example.git 
+
+          - name: Generate sha checksum 
+            run: sha256sum iac-azure-terraform-example.zip > iac-azure-terraform-example.zip.sha256sum
+
+          - name: Create Github Issue with backup and checksum 
+            env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            run: | 
+                gh issue create --title "Backup of repository" --body "Backup of repository with sha256sum checksum" --label "backup" --assignee ${{ github.actor }} --body-file iac-azure-terraform-example.zip.sha256sum
+                ISSUE_TITLE="Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)"
+                ISSUE_BODY=$(cat <<EOF 
+
+                ## Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)
+                ### Backup file 
+                \'iac-azure-terraform-example.zip\'
+                ### Checksum file
+                \'\'\'
+                $(cat iac-azure-terraform-example.zip.sha256sum)
+                \'\'\'
+                ### Details 
+                - Repository: ${{ github.repository }}
+                - Release: ${{ github.event.release.tag_name }}
+                - Date: $(date)
+               
+                EOF
+                ) 
+                gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"
+                

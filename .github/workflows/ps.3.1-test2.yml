@@ -52,4 +52,4 @@ jobs:
 
         EOF
                 )
-                gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup" --assignee ${{ github.actor }} --repo ${{ github.repository }}
+                gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"

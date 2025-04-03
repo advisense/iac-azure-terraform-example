@@ -21,7 +21,7 @@ jobs:
     - name: Generate sha checksum 
       run: sha256sum iac-azure-terraform-example.zip > iac-azure-terraform-example.zip.sha256sum
 
-    - name: Upload backup and checksum as artifacts
+    - name: Upload backup as artifact
       uses: actions/upload-artifact@v4
       with:
         name: backup-zip
@@ -38,23 +38,24 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: | 
         ISSUE_TITLE="Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)"
-        ARTIFACT_BASE_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+        RUN_ID=${{ github.run_id }}
+        REPO=${{ github.repository }}
 
         ISSUE_BODY=$(cat <<EOF
 
         ## Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)
-
+        
         ### Backup file  
-        [Download backup-zip]($ARTIFACT_BASE_URL)
-
+        [Download backup-zip](https://github.com/$REPO/actions/runs/$RUN_ID/artifacts)
+        
         ### Checksum file  
-        [Download backup-sha256]($ARTIFACT_BASE_URL)
-
+        [Download backup-sha256](https://github.com/$REPO/actions/runs/$RUN_ID/artifacts)
+        
         ### Details  
-        - Repository: ${{ github.repository }}  
-        - Release: ${{ github.event.release.tag_name }}  
-        - Date: $(date)  
+        - **Repository:** ${{ github.repository }}  
+        - **Release:** ${{ github.event.release.tag_name }}  
+        - **Date:** $(date)  
 
         EOF
-                )
-                gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"
+        )
+        gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"

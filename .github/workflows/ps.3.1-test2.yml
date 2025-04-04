@@ -3,6 +3,10 @@ name: ps.3.1-backup
 on:
   release:
     types: [published]
+    
+permissions:
+  contents: write
+  issues: write
 
 jobs:
   backup:

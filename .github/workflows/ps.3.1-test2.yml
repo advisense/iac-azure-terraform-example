@@ -1,4 +1,4 @@
-name: ps.3.1-test2
+name: ps.3.1-backup
 
 on:
   release:
@@ -13,10 +13,10 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Create backup of repository
-      run: | 
+      run: |
         git clone --mirror https://github.com/advisense/iac-azure-terraform-example.git 
-        sudo apt-get install zip 
-        zip iac-azure-terraform-example.zip -r iac-azure-terraform-example.git 
+        sudo apt-get install zip -y 
+        zip -r iac-azure-terraform-example.zip iac-azure-terraform-example.git 
 
     - name: Generate sha checksum 
       run: sha256sum iac-azure-terraform-example.zip > iac-azure-terraform-example.zip.sha256sum
@@ -32,6 +32,24 @@ jobs:
       with:
         name: backup-sha256
         path: iac-azure-terraform-example.zip.sha256sum
+
+    - name: Checkout target repository
+      run: |
+        git clone https://github.com/marteehe/SSDF-KPI.git
+        cd SSDF-KPI
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Copy backup file to repository folder
+      run: |
+        mkdir -p SSDF-KPI/KPIs/ps.3.1/
+        mv iac-azure-terraform-example.zip SSDF-KPI/KPIs/ps.3.1/
+        cd SSDF-KPI
+        git add KPIs/ps.3.1/iac-azure-terraform-example.zip
+        git commit -m "Legger til backup for ${{ github.event.release.tag_name }}"
+        git push origin main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Get artifact download URLs
       id: get-artifacts
@@ -51,17 +69,15 @@ jobs:
       run: | 
         ISSUE_TITLE="Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)"
         ISSUE_BODY=$(cat <<EOF
-
         ## Backup of repository and checksum for ${{ github.event.release.tag_name }} on $(date)
         ### Backup file
-        Download backup-zip
+        [Download backup-zip]($BACKUP_URL)
         ### Checksum file
-        Download backup-sha256
+        [Download backup-sha256]($SHA256_URL)
         ### Details
         - Repository: ${{ github.repository }}
         - Release: ${{ github.event.release.tag_name }}
         - Date: $(date)
-
         EOF
-                )
-                gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"
+        )
+        gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "backup"

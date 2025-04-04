@@ -47,7 +47,7 @@ jobs:
 
         git add -f KPIs/ps.3.1/iac-azure-terraform-example.zip
         git commit -m "Add backup for ${{ github.event.release.tag_name }}"
-        git push origin main
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/marteehe/SSDF-KPI.git main
 
         git update-index --assume-unchanged KPIs/ps.3.1/iac-azure-terraform-example.zip
       env:

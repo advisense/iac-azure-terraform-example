@@ -33,7 +33,7 @@ jobs:
         name: backup-sha256
         path: iac-azure-terraform-example.zip.sha256sum
 
-    - name: Checkout target repository
+    - name: Checkout target repository (SSDF-KPI)
       run: |
         git clone https://github.com/marteehe/SSDF-KPI.git
         cd SSDF-KPI
@@ -42,12 +42,14 @@ jobs:
 
     - name: Copy backup file to repository folder
       run: |
-        mkdir -p SSDF-KPI/KPIs/ps.3.1/
-        mv iac-azure-terraform-example.zip SSDF-KPI/KPIs/ps.3.1/
-        cd SSDF-KPI
-        git add KPIs/ps.3.1/iac-azure-terraform-example.zip
-        git commit -m "Legger til backup for ${{ github.event.release.tag_name }}"
+        cd SSDF-KPI/KPIs/ps.3.1/
+        mv ../iac-azure-terraform-example.zip KPIs/ps.3.1/
+
+        git add -f KPIs/ps.3.1/iac-azure-terraform-example.zip
+        git commit -m "Add backup for ${{ github.event.release.tag_name }}"
         git push origin main
+
+        git update-index --assume-unchanged KPIs/ps.3.1/iac-azure-terraform-example.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

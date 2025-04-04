@@ -46,14 +46,15 @@ jobs:
 
     - name: Copy backup file to repository folder
       run: |
-        cd SSDF-KPI/
-        mv ../iac-azure-terraform-example.zip KPIs/ps.3.1/
-
-        git add -f KPIs/ps.3.1/iac-azure-terraform-example.zip
-        git commit -m "Add backup for ${{ github.event.release.tag_name }}"
-        git push https://x-access-token:${{ secrets.BACKUP_PERSONAL_ACCESS_TOKEN}}@github.com/marteehe/SSDF-KPI.git main
-
-        git update-index --assume-unchanged KPIs/ps.3.1/iac-azure-terraform-example.zip
+            cd SSDF-KPI/
+            mv ../iac-azure-terraform-example.zip KPIs/ps.3.1/
+            
+            git add -f KPIs/ps.3.1/iac-azure-terraform-example.zip
+            git commit -m "Add backup for ${{ github.event.release.tag_name }}"
+            
+            git push https://x-access-token:${{ secrets.BACKUP_PERSONAL_ACCESS_TOKEN }}@github.com/marteehe/SSDF-KPI.git main
+            
+            git update-index --assume-unchanged KPIs/ps.3.1/iac-azure-terraform-example.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
